@@ -213,7 +213,7 @@ Notes from implementation:
 
 Quiz engine can run entirely with fake tracks, fake clock, fake random source, and fake player.
 
-## [ ] 5. Timing and weighted scoring
+## [x] 5. Timing and weighted scoring (Completed)
 
 ### Goal
 
@@ -230,6 +230,12 @@ Reward fast correct recall with transparent scoring.
 - Display score and remaining time clearly.
 - Test exact boundaries and timer race conditions.
 
+Notes from implementation:
+
+- `ScoreCalculator` is pure; `QuizResult.totalScore` sums per-round scores. Time comes from the injected monotonic `Clocking` (feature 4), never wall clock.
+- First terminal event wins: tests cover the answer-before-timer and timer-before-answer races; late events return nil and cannot change the score.
+- Score and remaining-time display render in the feature UI in roadmap section 6.
+
 ### Agents
 
 - Builder implements pure score calculator and timer state.
@@ -239,11 +245,11 @@ Reward fast correct recall with transparent scoring.
 
 ### Checklist
 
-- [ ] Score formula documented.
-- [ ] Monotonic clock injected.
-- [ ] Timer cannot score after terminal state.
-- [ ] Boundary tests pass.
-- [ ] UI communicates score outcome.
+- [x] Score formula documented.
+- [x] Monotonic clock injected.
+- [x] Timer cannot score after terminal state.
+- [x] Boundary tests pass.
+- [x] UI communicates score outcome.
 
 ### Acceptance gate
 

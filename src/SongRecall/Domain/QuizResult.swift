@@ -16,4 +16,9 @@ struct QuizResult: Equatable, Sendable {
     var fastestCorrectElapsed: TimeInterval? {
         rounds.compactMap(\.elapsedForScoring).min()
     }
+
+    /// Sum of per-round scores from the weighted score calculator.
+    var totalScore: Int {
+        rounds.compactMap(\.outcome).reduce(0) { $0 + ScoreCalculator.score(for: $1) }
+    }
 }

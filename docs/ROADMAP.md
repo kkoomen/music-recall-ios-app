@@ -166,7 +166,7 @@ Notes from implementation:
 
 Every quiz round plays only its selected local song and never leaks playback into the next round.
 
-## [ ] 4. Quiz domain engine
+## [x] 4. Quiz domain engine (Completed)
 
 ### Goal
 
@@ -186,6 +186,12 @@ Implement deterministic, testable quiz rules independent from SwiftUI and system
 - Advance rounds without duplicate selection.
 - Produce final result summary.
 
+Notes from implementation:
+
+- `QuizSession` is a pure value state machine that takes explicit `now` parameters; `QuizEngine` wires in `Clocking` and `RandomSource`. `SeededRandomSource` (SplitMix64) makes selection deterministic per seed.
+- `QuizResult` exposes correct count, accuracy, and fastest correct elapsed; weighted scoring lands in section 5.
+- `interrupt()` covers playback failure and system interruptions with a visible recovery path for the UI.
+
 ### Agents
 
 - Builder owns domain implementation.
@@ -195,13 +201,13 @@ Implement deterministic, testable quiz rules independent from SwiftUI and system
 
 ### Checklist
 
-- [ ] Domain models exist.
-- [ ] Ten-round selection is unique.
-- [ ] Fewer-than-ten behavior works.
-- [ ] Answer normalization works.
-- [ ] One-attempt rule works.
-- [ ] Terminal states cannot accept more answers.
-- [ ] Deterministic tests pass.
+- [x] Domain models exist.
+- [x] Ten-round selection is unique.
+- [x] Fewer-than-ten behavior works.
+- [x] Answer normalization works.
+- [x] One-attempt rule works.
+- [x] Terminal states cannot accept more answers.
+- [x] Deterministic tests pass.
 
 ### Acceptance gate
 

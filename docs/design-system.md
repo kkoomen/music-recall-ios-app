@@ -4,10 +4,6 @@
 
 Dark album-art arcade. The interface feels focused, energetic, and premium without adding visual noise.
 
-## Brand mark
-
-`SongRecallLogo` is the app mark: a hot-pink beamed music note on a near-black arcade tile, surrounded by two quiet return arcs. The note keeps music immediately legible; the arcs signal memory and replay. The source lives in `src/SongRecall/Resources/Assets.xcassets/SongRecallLogo.imageset/` and is kept as vector artwork for scale-independent rendering.
-
 ## Tokens
 
 Defined in `src/SongRecall/DesignSystem/AppTheme.swift`:

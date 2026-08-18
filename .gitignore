@@ -1,6 +1,11 @@
 # macOS
 .DS_Store
 
+# Source screenshots used to build demo.png (do not commit)
+demo1.png
+demo2.png
+demo3.png
+
 # Xcode
 xcuserdata/
 *.xcuserstate

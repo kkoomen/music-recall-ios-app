@@ -92,7 +92,7 @@ final class QuizViewModelSuggestionTests: XCTestCase {
         vm.guessDidChange()
         vm.submitFromKeyboard()
 
-        XCTAssertEqual(vm.feedback, .correct(score: 1_000))
+        XCTAssertEqual(vm.feedback, .correct(points: 80, isFast: true))
     }
 
     func testSubmitFromKeyboardDoesNothingWhenEmptyAndNoDropdown() {

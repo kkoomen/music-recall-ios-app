@@ -164,14 +164,16 @@ struct QuizView: View {
     private var answerReveal: some View {
         if shouldRevealAnswer, let track = viewModel.currentTrack {
             VStack(spacing: AppTheme.Spacing.xs) {
-                Text("The song was")
-                    .font(.footnote)
+                Text(track.title)
+                    .font(.title2.weight(.bold))
+                    .foregroundStyle(AppTheme.primaryText)
+                    .multilineTextAlignment(.center)
+                Text(track.artist)
+                    .font(.body)
                     .foregroundStyle(AppTheme.secondaryText)
-                SuggestionRow(suggestion: TrackSuggestion(track: track))
-                    .frame(maxWidth: .infinity)
+                    .multilineTextAlignment(.center)
             }
-            .padding(AppTheme.Spacing.md)
-            .panel(cornerRadius: AppTheme.cardCornerRadius)
+            .frame(maxWidth: .infinity)
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier(AccessibilityID.quizReveal)
             .accessibilityLabel("The song was \(track.title), \(track.artist)")
@@ -192,28 +194,87 @@ struct QuizView: View {
 
     @ViewBuilder
     private var feedbackBanner: some View {
-        if viewModel.feedback != .none {
-            HStack(spacing: 10) {
-                Image(systemName: feedbackIcon)
-                    .font(.headline)
-                Text(feedbackText)
-                    .font(.headline)
-                    .multilineTextAlignment(.center)
+        switch viewModel.feedback {
+        case .none:
+            EmptyView()
+        case .correct(let points, let isFast):
+            if isFast {
+                fastCorrectBanner(points: points)
+            } else {
+                correctBanner(points: points)
             }
-            .foregroundStyle(feedbackColor)
-            .padding(.vertical, AppTheme.Spacing.md)
-            .frame(maxWidth: .infinity)
-            .panel(cornerRadius: AppTheme.smallCornerRadius)
-            .accessibilityIdentifier(AccessibilityID.quizFeedback)
-            .accessibilityLabel(feedbackText)
-            .transition(reduceMotion ? .opacity : .scale.combined(with: .opacity))
+        case .wrong, .skipped, .timedOut, .interrupted:
+            genericFeedbackBanner
         }
+    }
+
+    /// Celebration for a correct answer within the fast window: a bold
+    /// "You're fast!" compliment with a highlighted 2x multiplier badge.
+    private func fastCorrectBanner(points: Int) -> some View {
+        VStack(spacing: AppTheme.Spacing.sm) {
+            HStack(spacing: 6) {
+                Image(systemName: "bolt.fill")
+                Text("You're fast!")
+            }
+            .font(.title2.weight(.heavy))
+            .foregroundStyle(AppTheme.accent)
+
+            Text("2x multiplier")
+                .font(.headline.weight(.heavy))
+                .foregroundStyle(AppTheme.accentText)
+                .padding(.horizontal, AppTheme.Spacing.lg)
+                .padding(.vertical, AppTheme.Spacing.xs)
+                .background(AppTheme.accent, in: Capsule())
+                .accessibilityHidden(true)
+
+            Text("+\\(points) points")
+                .font(.title3.weight(.bold))
+                .foregroundStyle(AppTheme.success)
+        }
+        .padding(AppTheme.Spacing.lg)
+        .frame(maxWidth: .infinity)
+        .panel(cornerRadius: AppTheme.cardCornerRadius)
+        .accessibilityIdentifier(AccessibilityID.quizFeedback)
+        .accessibilityLabel("You're fast! 2x multiplier, plus \\(points) points")
+        .transition(reduceMotion ? .opacity : .scale.combined(with: .opacity))
+    }
+
+    private func correctBanner(points: Int) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.headline)
+            Text("Correct! +\\(points) points")
+                .font(.headline)
+        }
+        .foregroundStyle(AppTheme.success)
+        .padding(.vertical, AppTheme.Spacing.md)
+        .frame(maxWidth: .infinity)
+        .panel(cornerRadius: AppTheme.smallCornerRadius)
+        .accessibilityIdentifier(AccessibilityID.quizFeedback)
+        .accessibilityLabel("Correct, plus \\(points) points")
+        .transition(reduceMotion ? .opacity : .scale.combined(with: .opacity))
+    }
+
+    private var genericFeedbackBanner: some View {
+        HStack(spacing: 10) {
+            Image(systemName: feedbackIcon)
+                .font(.headline)
+            Text(feedbackText)
+                .font(.headline)
+                .multilineTextAlignment(.center)
+        }
+        .foregroundStyle(feedbackColor)
+        .padding(.vertical, AppTheme.Spacing.md)
+        .frame(maxWidth: .infinity)
+        .panel(cornerRadius: AppTheme.smallCornerRadius)
+        .accessibilityIdentifier(AccessibilityID.quizFeedback)
+        .accessibilityLabel(feedbackText)
+        .transition(reduceMotion ? .opacity : .scale.combined(with: .opacity))
     }
 
     private var feedbackText: String {
         switch viewModel.feedback {
-        case .none: return ""
-        case .correct(let score): return "Correct! +\(score)"
+        case .none, .correct: return ""
         case .wrong: return "Not this time"
         case .skipped: return "Skipped"
         case .timedOut: return "Time's up"
@@ -223,21 +284,19 @@ struct QuizView: View {
 
     private var feedbackIcon: String {
         switch viewModel.feedback {
-        case .correct: return "checkmark.circle.fill"
+        case .none, .correct: return ""
         case .wrong, .timedOut: return "xmark.circle.fill"
         case .skipped: return "forward.fill"
         case .interrupted: return "exclamationmark.triangle.fill"
-        case .none: return ""
         }
     }
 
     private var feedbackColor: Color {
         switch viewModel.feedback {
-        case .correct: return AppTheme.success
+        case .none, .correct: return .clear
         case .wrong, .timedOut: return AppTheme.danger
         case .skipped: return AppTheme.secondaryText
         case .interrupted: return AppTheme.danger
-        case .none: return .clear
         }
     }
 

@@ -28,7 +28,8 @@ final class QuizJourneyTests: XCTestCase {
         // Round 1: correct answer for Gamma Song via return key.
         assertRound(number: 1, of: 3)
         answer("Gamma Song")
-        assertFeedback(contains: "Correct")
+        // Answered within 5 seconds: the fast celebration shows.
+        assertFeedback(contains: "2x multiplier")
         // A correct guess does not reveal the answer.
         XCTAssertFalse(revealElement.exists, "Correct answers must not show the reveal")
         app.buttons[AccessibilityID.quizNext].tap()

@@ -6,7 +6,7 @@ import Foundation
 final class QuizViewModel: ObservableObject {
     enum Feedback: Equatable {
         case none
-        case correct(score: Int)
+        case correct(points: Int, isFast: Bool)
         case wrong
         case skipped
         case timedOut
@@ -152,9 +152,12 @@ final class QuizViewModel: ObservableObject {
         audioPlayer.stop()
         switch outcome {
         case .correct(let elapsed):
-            let points = ScoreCalculator.score(forCorrectAnswerAt: elapsed)
-            score += points
-            feedback = .correct(score: points)
+            let breakdown = ScoreCalculator.breakdown(
+                forCorrectAnswerAt: elapsed,
+                roundDuration: engine.configuration.roundDuration
+            )
+            score += breakdown.points
+            feedback = .correct(points: breakdown.points, isFast: breakdown.isFast)
             Haptics.success()
         case .wrong:
             feedback = .wrong

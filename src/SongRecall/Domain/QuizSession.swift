@@ -101,7 +101,7 @@ struct QuizSession: Equatable, Sendable {
             rounds[index + 1].start(at: now)
             state = .playing(roundIndex: index + 1)
         } else {
-            state = .finished(QuizResult(rounds: rounds))
+            state = .finished(QuizResult(rounds: rounds, roundDuration: configuration.roundDuration))
         }
         return state
     }

@@ -33,7 +33,7 @@ final class AutocompleteUITests: XCTestCase {
 
         let feedback = app.staticTexts["quiz.feedback"]
         XCTAssertTrue(feedback.waitForExistence(timeout: 5))
-        XCTAssertTrue(feedback.label.contains("Correct"), "Got: \(feedback.label)")
+        XCTAssertTrue(feedback.label.contains("2x multiplier"), "Got: \(feedback.label)")
     }
 
     func testNoSuggestionsForNonsenseQuery() throws {

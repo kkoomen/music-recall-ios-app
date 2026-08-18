@@ -3,6 +3,7 @@ import Foundation
 /// Final session summary. Scoring is layered on by the score calculator.
 struct QuizResult: Equatable, Sendable {
     let rounds: [QuizRound]
+    let roundDuration: TimeInterval
 
     var correctCount: Int {
         rounds.filter(\.isCorrect).count
@@ -19,6 +20,8 @@ struct QuizResult: Equatable, Sendable {
 
     /// Sum of per-round scores from the weighted score calculator.
     var totalScore: Int {
-        rounds.compactMap(\.outcome).reduce(0) { $0 + ScoreCalculator.score(for: $1) }
+        rounds.compactMap(\.outcome).reduce(0) {
+            $0 + ScoreCalculator.score(for: $1, roundDuration: roundDuration)
+        }
     }
 }

@@ -17,6 +17,8 @@ struct QuizView: View {
             answerField
             feedbackBanner
             Spacer(minLength: AppTheme.Spacing.md)
+            answerReveal
+            Spacer(minLength: AppTheme.Spacing.md)
             actionButtons
         }
         .padding(AppTheme.Spacing.xl)
@@ -141,6 +143,39 @@ struct QuizView: View {
         }
         .panel(cornerRadius: AppTheme.smallCornerRadius)
         .shadow(color: .black.opacity(0.45), radius: 16, y: 8)
+    }
+
+    // MARK: - Answer reveal
+
+    /// Shows the correct answer in the middle of the screen when the
+    /// round ended without a correct guess, using the same title/artist
+    /// row styling as the autocomplete.
+    @ViewBuilder
+    private var answerReveal: some View {
+        if shouldRevealAnswer, let track = viewModel.currentTrack {
+            VStack(spacing: AppTheme.Spacing.xs) {
+                Text("The song was")
+                    .font(.footnote)
+                    .foregroundStyle(AppTheme.secondaryText)
+                SuggestionRow(suggestion: TrackSuggestion(track: track))
+                    .frame(maxWidth: .infinity)
+            }
+            .padding(AppTheme.Spacing.md)
+            .panel(cornerRadius: AppTheme.cardCornerRadius)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier(AccessibilityID.quizReveal)
+            .accessibilityLabel("The song was \(track.title), \(track.artist)")
+            .transition(reduceMotion ? .opacity : .scale(scale: 0.97).combined(with: .opacity))
+        }
+    }
+
+    private var shouldRevealAnswer: Bool {
+        switch viewModel.feedback {
+        case .none, .correct:
+            return false
+        case .wrong, .skipped, .timedOut, .interrupted:
+            return true
+        }
     }
 
     // MARK: - Feedback

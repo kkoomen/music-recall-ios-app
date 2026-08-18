@@ -29,12 +29,17 @@ final class QuizJourneyTests: XCTestCase {
         assertRound(number: 1, of: 3)
         answer("Gamma Song")
         assertFeedback(contains: "Correct")
+        // A correct guess does not reveal the answer.
+        XCTAssertFalse(revealElement.exists, "Correct answers must not show the reveal")
         app.buttons[AccessibilityID.quizNext].tap()
 
         // Round 2: wrong answer for Beta Song via return key.
         assertRound(number: 2, of: 3)
         answer("Not A Real Title")
         assertFeedback(contains: "Not this time")
+        // The correct answer is revealed in the middle: title + artist.
+        XCTAssertTrue(revealElement.waitForExistence(timeout: 5))
+        XCTAssertEqual(revealElement.label, "The song was Beta Song, Artist Two")
         app.buttons[AccessibilityID.quizNext].tap()
 
         // Round 3: skip for Alpha Song (keyboard is down).
@@ -72,6 +77,12 @@ final class QuizJourneyTests: XCTestCase {
 
     // MARK: - Helpers
 
+    private var revealElement: XCUIElement {
+        app.descendants(matching: .any)
+            .matching(identifier: AccessibilityID.quizReveal)
+            .firstMatch
+    }
+
     private func assertRound(number: Int, of total: Int) {
         let round = app.staticTexts[AccessibilityID.quizRound]
         XCTAssertTrue(round.waitForExistence(timeout: 5))
@@ -108,6 +119,7 @@ private enum AccessibilityID {
     static let quizSubmit = "quiz.submit"
     static let quizSkip = "quiz.skip"
     static let quizNext = "quiz.next"
+    static let quizReveal = "quiz.reveal"
     static let quizFeedback = "quiz.feedback"
     static let resultsScore = "results.score"
     static let resultsCorrect = "results.correct"

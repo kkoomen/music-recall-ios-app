@@ -41,6 +41,10 @@ Return-key behavior:
 
 Tapping a row fills the field with that track's title and submits it as the player's answer (one attempt, as usual).
 
+## Answer reveal
+
+When a round ends without a correct guess (wrong answer, skip, timeout, or playback interruption), the correct song is revealed in the middle of the quiz screen using the same row styling as the autocomplete: title in white larger text with the artist in grey smaller text underneath. Correct answers show no reveal.
+
 ## Scoring
 
 For a correct answer submitted before timeout:

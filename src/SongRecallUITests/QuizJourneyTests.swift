@@ -71,7 +71,8 @@ final class QuizJourneyTests: XCTestCase {
     private func assertRound(number: Int, of total: Int) {
         let round = app.staticTexts[AccessibilityID.quizRound]
         XCTAssertTrue(round.waitForExistence(timeout: 5))
-        XCTAssertTrue(round.label.contains("\(number) / \(total)"), "Expected round \(number) of \(total), got \(round.label)")
+        let acceptable = ["Round \(number) / \(total)", "Round \(number) of \(total)"]
+        XCTAssertTrue(acceptable.contains(round.label), "Expected round \(number) of \(total), got \(round.label)")
         XCTAssertTrue(app.staticTexts[AccessibilityID.quizTimer].exists)
         XCTAssertTrue(app.staticTexts[AccessibilityID.quizScore].exists)
         XCTAssertTrue(app.otherElements[AccessibilityID.quizArtwork].exists

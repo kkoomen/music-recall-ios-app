@@ -27,8 +27,8 @@ struct HomeView: View {
             Button(action: onStartQuiz) {
                 Label("Start Quiz", systemImage: "play.fill")
                     .font(.title3.weight(.semibold))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 6)
+                    .foregroundStyle(AppTheme.accentText)
+                    .frame(maxWidth: .infinity, minHeight: AppTheme.minimumTouchHeight)
             }
             .buttonStyle(.borderedProminent)
             .tint(AppTheme.accent)

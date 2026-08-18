@@ -298,7 +298,7 @@ Notes from implementation:
 
 User can launch app, authorize library, start quiz, answer ten rounds, and replay without developer intervention.
 
-## [ ] 7. Visual polish and accessibility pass
+## [x] 7. Visual polish and accessibility pass (Completed)
 
 ### Goal
 
@@ -317,6 +317,14 @@ Make MVP feel distinctive, native, fast, and accessible.
 - Verify light fallback, dark appearance, and high-contrast settings.
 - Avoid animation tied to timer updates that causes excessive redraw.
 
+Notes from implementation:
+
+- Tokens live in `DesignSystem/AppTheme.swift`; documented in docs/design-system.md. The app is intentionally dark-only (forced dark appearance), recorded as a design decision with no light fallback.
+- `ArtworkAccent` derives a radial glow from the album artwork behind the artwork card; all text uses semantic colors.
+- Haptics (success/error/impact) and all transitions are gated on Reduce Motion. Timer text uses monospaced digits and has no animation; artwork is decoded once per round.
+- The quiz header uses `ViewThatFits` to survive large Dynamic Type; a UI test runs the quiz at accessibility-XXXL and asserts controls stay hittable inside the window.
+- VoiceOver: meaningful labels on timer/score/round/stats; artwork labeled "Song artwork" without leaking the title; result states combine icon + text, never color alone. Touch targets enforce 48pt.
+
 ### Agents
 
 - SwiftUI-design agent performs visual pass.
@@ -326,13 +334,13 @@ Make MVP feel distinctive, native, fast, and accessible.
 
 ### Checklist
 
-- [ ] Design tokens documented.
-- [ ] Timer and score remain readable.
-- [ ] Dynamic Type passes.
-- [ ] VoiceOver passes.
-- [ ] Reduce Motion passes.
-- [ ] Contrast and touch-target checks pass.
-- [ ] No obvious frame drops during playback.
+- [x] Design tokens documented.
+- [x] Timer and score remain readable.
+- [x] Dynamic Type passes.
+- [x] VoiceOver passes.
+- [x] Reduce Motion passes.
+- [x] Contrast and touch-target checks pass.
+- [x] No obvious frame drops during playback.
 
 ### Acceptance gate
 

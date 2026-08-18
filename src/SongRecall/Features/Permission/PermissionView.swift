@@ -37,8 +37,8 @@ struct PermissionView: View {
                 Button(action: onRequestAccess) {
                     Text("Allow Music Access")
                         .font(.title3.weight(.semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 6)
+                        .foregroundStyle(AppTheme.accentText)
+                        .frame(maxWidth: .infinity, minHeight: AppTheme.minimumTouchHeight)
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(AppTheme.accent)
@@ -50,8 +50,8 @@ struct PermissionView: View {
                 Button(action: onOpenSettings) {
                     Text("Open Settings")
                         .font(.title3.weight(.semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 6)
+                        .foregroundStyle(AppTheme.accentText)
+                        .frame(maxWidth: .infinity, minHeight: AppTheme.minimumTouchHeight)
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(AppTheme.accent)

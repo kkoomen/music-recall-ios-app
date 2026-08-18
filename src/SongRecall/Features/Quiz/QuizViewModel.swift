@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 /// Owns one quiz session: round presentation, answer handling, timer,
 /// scoring, and playback coordination. Main-actor confined.
@@ -18,7 +19,7 @@ final class QuizViewModel: ObservableObject {
     @Published private(set) var score = 0
     @Published private(set) var remainingSeconds: Int
     @Published private(set) var feedback: Feedback = .none
-    @Published private(set) var artworkData: Data?
+    @Published private(set) var artworkImage: UIImage?
     @Published var guess = ""
 
     private let engine: QuizEngine
@@ -104,14 +105,19 @@ final class QuizViewModel: ObservableObject {
             let points = ScoreCalculator.score(forCorrectAnswerAt: elapsed)
             score += points
             feedback = .correct(score: points)
+            Haptics.success()
         case .wrong:
             feedback = .wrong
+            Haptics.error()
         case .skipped:
             feedback = .skipped
+            Haptics.lightImpact()
         case .timedOut:
             feedback = .timedOut
+            Haptics.error()
         case .interrupted:
             feedback = .interrupted
+            Haptics.error()
         }
     }
 
@@ -129,10 +135,10 @@ final class QuizViewModel: ObservableObject {
 
     private func loadArtwork() {
         guard let track = engine.currentRound?.track else {
-            artworkData = nil
+            artworkImage = nil
             return
         }
-        artworkData = mediaLibrary.artworkData(for: track.id)
+        artworkImage = mediaLibrary.artworkData(for: track.id).flatMap(UIImage.init(data:))
     }
 
     private func prepareAndPlay(assetURL: URL) {

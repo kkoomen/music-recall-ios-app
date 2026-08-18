@@ -3,6 +3,7 @@ import SwiftUI
 /// Root view: routes between library, quiz, and results.
 struct RootView: View {
     @ObservedObject var appModel: AppModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ZStack {
@@ -14,7 +15,7 @@ struct RootView: View {
             case .quiz:
                 if let viewModel = appModel.quizViewModel {
                     QuizView(viewModel: viewModel)
-                        .transition(.opacity)
+                        .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.98)))
                 }
             case .results(let result):
                 ResultsView(
@@ -22,10 +23,10 @@ struct RootView: View {
                     onReplay: { appModel.replay() },
                     onHome: { appModel.backToLibrary() }
                 )
-                .transition(.opacity)
+                .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.98)))
             }
         }
-        .animation(.easeInOut(duration: 0.25), value: appModel.route)
+        .animation(reduceMotion ? nil : AppTheme.standardAnimation, value: appModel.route)
         .preferredColorScheme(.dark)
         .task {
             await appModel.loadLibrary()
@@ -36,7 +37,7 @@ struct RootView: View {
     private var libraryContent: some View {
         switch appModel.libraryState {
         case .loading:
-            VStack(spacing: 16) {
+            VStack(spacing: AppTheme.Spacing.lg) {
                 ProgressView()
                     .controlSize(.large)
                     .tint(AppTheme.accent)

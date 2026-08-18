@@ -33,8 +33,8 @@ struct ResultsView: View {
             Button(action: onReplay) {
                 Label("Play Again", systemImage: "arrow.clockwise")
                     .font(.title3.weight(.semibold))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 6)
+                    .foregroundStyle(AppTheme.accentText)
+                    .frame(maxWidth: .infinity, minHeight: AppTheme.minimumTouchHeight)
             }
             .buttonStyle(.borderedProminent)
             .tint(AppTheme.accent)
@@ -44,8 +44,7 @@ struct ResultsView: View {
             Button(action: onHome) {
                 Text("Back to Library")
                     .font(.body.weight(.semibold))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 6)
+                    .frame(maxWidth: .infinity, minHeight: AppTheme.minimumTouchHeight)
             }
             .buttonStyle(.bordered)
             .tint(AppTheme.secondaryText)
@@ -95,5 +94,6 @@ struct ResultsView: View {
         .background(AppTheme.surface, in: RoundedRectangle(cornerRadius: 14))
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier(id)
+        .accessibilityLabel("\(title): \(value)")
     }
 }

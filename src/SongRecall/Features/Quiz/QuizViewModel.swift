@@ -1,5 +1,4 @@
 import Foundation
-import UIKit
 
 /// Owns one quiz session: round presentation, answer handling, timer,
 /// scoring, and playback coordination. Main-actor confined.
@@ -19,7 +18,6 @@ final class QuizViewModel: ObservableObject {
     @Published private(set) var score = 0
     @Published private(set) var remainingSeconds: Int
     @Published private(set) var feedback: Feedback = .none
-    @Published private(set) var artworkImage: UIImage?
     @Published private(set) var suggestions: [TrackSuggestion] = []
     @Published var guess = ""
 
@@ -28,7 +26,6 @@ final class QuizViewModel: ObservableObject {
 
     private let engine: QuizEngine
     private let audioPlayer: AudioPlaying
-    private let mediaLibrary: MediaLibraryProviding
     private let suggestionIndex: [TrackSuggestionRanker.IndexEntry]
     private var timerTask: Task<Void, Never>?
     private var suggestionTask: Task<Void, Never>?
@@ -45,13 +42,11 @@ final class QuizViewModel: ObservableObject {
     init(
         engine: QuizEngine,
         audioPlayer: AudioPlaying,
-        mediaLibrary: MediaLibraryProviding,
         catalog: [Track],
         onFinish: @escaping (QuizResult) -> Void
     ) {
         self.engine = engine
         self.audioPlayer = audioPlayer
-        self.mediaLibrary = mediaLibrary
         self.suggestionIndex = TrackSuggestionRanker.makeIndex(from: catalog)
         self.totalRounds = engine.session.rounds.count
         self.remainingSeconds = Int(engine.configuration.roundDuration)
@@ -82,18 +77,31 @@ final class QuizViewModel: ObservableObject {
     }
 
     /// Debounced search entry point, called whenever the guess changes.
-    /// Suggestions refresh 400ms after the last keystroke, or clear
-    /// immediately when the query is empty.
+    /// Suggestions refresh 400ms after the last keystroke. Clearing the
+    /// input keeps the last results so the dropdown stays open for
+    /// enter-to-select-first.
     func guessDidChange() {
         suggestionTask?.cancel()
-        guard !AnswerNormalizer.normalize(guess).isEmpty else {
-            suggestions = []
-            return
-        }
+        guard !AnswerNormalizer.normalize(guess).isEmpty else { return }
         suggestionTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: Self.suggestionDebounce)
             guard !Task.isCancelled else { return }
             self?.refreshSuggestions()
+        }
+    }
+
+    /// Keyboard return handling: with a value in the field, submit it.
+    /// With an empty field and the dropdown open, select the first
+    /// suggestion. With an empty field and no dropdown, do nothing so
+    /// pressing return can never cause an accidental wrong answer.
+    func submitFromKeyboard() {
+        let trimmed = guess.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            if let first = suggestions.first {
+                select(first)
+            }
+        } else {
+            submit()
         }
     }
 
@@ -133,7 +141,6 @@ final class QuizViewModel: ObservableObject {
         feedback = .none
         guess = ""
         remainingSeconds = Int(engine.configuration.roundDuration)
-        loadArtwork()
         prepareAndPlay(assetURL: round.track.assetURL)
         startTimer()
     }
@@ -174,14 +181,6 @@ final class QuizViewModel: ObservableObject {
         guard feedback == .none else { return }
         _ = engine.interrupt()
         settle(.interrupted)
-    }
-
-    private func loadArtwork() {
-        guard let track = engine.currentRound?.track else {
-            artworkImage = nil
-            return
-        }
-        artworkImage = mediaLibrary.artworkData(for: track.id).flatMap(UIImage.init(data:))
     }
 
     private func prepareAndPlay(assetURL: URL) {

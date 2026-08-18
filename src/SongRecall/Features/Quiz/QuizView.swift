@@ -1,32 +1,27 @@
 import SwiftUI
 
-/// Active quiz round: artwork, timer, score, answer field, and
-/// round feedback.
+/// Active quiz round.
+///
+/// Layout: input field at the top, action buttons pinned to the bottom,
+/// and the space in between reserved for the autocomplete dropdown that
+/// expands while typing.
 struct QuizView: View {
     @ObservedObject var viewModel: QuizViewModel
     @FocusState private var answerFieldFocused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var artworkAccent: Color?
     @State private var fieldHeight: CGFloat = 0
 
     var body: some View {
-        VStack(spacing: AppTheme.Spacing.xl) {
+        VStack(spacing: AppTheme.Spacing.lg) {
             header
-            artwork
+            answerField
             feedbackBanner
-            answerSection
+            Spacer(minLength: AppTheme.Spacing.md)
             actionButtons
         }
         .padding(AppTheme.Spacing.xl)
         .onAppear {
             viewModel.start()
-        }
-        .onChange(of: viewModel.artworkImage) { _, image in
-            guard let data = image?.pngData() else {
-                artworkAccent = nil
-                return
-            }
-            artworkAccent = ArtworkAccent.color(from: data)
         }
     }
 
@@ -86,7 +81,6 @@ struct QuizView: View {
             .foregroundStyle(timerColor)
             .accessibilityIdentifier(AccessibilityID.quizTimer)
             .accessibilityLabel("\(max(0, viewModel.remainingSeconds)) seconds remaining")
-            .accessibilityHidden(false)
     }
 
     private var timerColor: Color {
@@ -94,44 +88,59 @@ struct QuizView: View {
         return viewModel.remainingSeconds <= 5 ? AppTheme.danger : AppTheme.primaryText
     }
 
-    // MARK: - Artwork
+    // MARK: - Answer input with attached autocomplete overlay
 
-    private var artwork: some View {
-        Group {
-            if let image = viewModel.artworkImage {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFit()
-            } else {
-                RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius)
-                    .fill(AppTheme.surfaceElevated)
-                    .overlay {
-                        Image(systemName: "music.note")
-                            .font(.system(size: 56))
-                            .foregroundStyle(AppTheme.secondaryText)
-                    }
+    private var answerField: some View {
+        TextField("Song title or artist — title", text: $viewModel.guess)
+            .textFieldStyle(.plain)
+            .font(.title3)
+            .padding(AppTheme.Spacing.lg)
+            .background(AppTheme.surface, in: RoundedRectangle(cornerRadius: AppTheme.smallCornerRadius))
+            .foregroundStyle(AppTheme.primaryText)
+            .submitLabel(.go)
+            .focused($answerFieldFocused)
+            .onSubmit {
+                viewModel.submitFromKeyboard()
+            }
+            .onChange(of: viewModel.guess) {
+                viewModel.guessDidChange()
+            }
+            .accessibilityIdentifier(AccessibilityID.quizAnswerField)
+            .accessibilityHint("Type the song title, or artist and title")
+            .onGeometryChange(for: CGFloat.self, of: { $0.size.height }) { height in
+                fieldHeight = height
+            }
+            .overlay(alignment: .top) {
+                if !viewModel.suggestions.isEmpty {
+                    suggestionList
+                        .offset(y: fieldHeight + AppTheme.Spacing.sm)
+                        .transition(.opacity)
+                        .animation(.easeOut(duration: 0.15), value: viewModel.suggestions.isEmpty)
+                }
+            }
+            .zIndex(1)
+    }
+
+    private var suggestionList: some View {
+        VStack(spacing: 0) {
+            ForEach(viewModel.suggestions, id: \.track.id) { suggestion in
+                Button {
+                    viewModel.select(suggestion)
+                } label: {
+                    SuggestionRow(suggestion: suggestion)
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier(AccessibilityID.quizSuggestion)
+                .accessibilityLabel("\(suggestion.track.title), \(suggestion.track.artist)")
+
+                if suggestion.track.id != viewModel.suggestions.last?.track.id {
+                    Divider()
+                        .overlay(AppTheme.surfaceBorder)
+                }
             }
         }
-        .frame(maxWidth: .infinity)
-        .aspectRatio(1, contentMode: .fit)
-        .clipShape(RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius))
-        .overlay {
-            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius)
-                .stroke(AppTheme.surfaceBorder, lineWidth: 1)
-        }
-        .background {
-            // Artwork-derived accent as decoration only; text never sits on it.
-            if let artworkAccent {
-                RadialGradient(
-                    colors: [artworkAccent.opacity(0.4), .clear],
-                    center: .center,
-                    startRadius: 20,
-                    endRadius: 320
-                )
-            }
-        }
-        .accessibilityIdentifier(AccessibilityID.quizArtwork)
-        .accessibilityLabel("Song artwork")
+        .panel(cornerRadius: AppTheme.smallCornerRadius)
+        .shadow(color: .black.opacity(0.45), radius: 16, y: 8)
     }
 
     // MARK: - Feedback
@@ -185,72 +194,6 @@ struct QuizView: View {
         case .interrupted: return AppTheme.danger
         case .none: return .clear
         }
-    }
-
-    // MARK: - Answer
-
-    private var answerSection: some View {
-        VStack(spacing: AppTheme.Spacing.md) {
-            if viewModel.roundIsActive {
-                answerField
-            }
-        }
-    }
-
-    /// The answer input with the autocomplete overlay attached below it.
-    /// The overlay floats above surrounding content and never affects
-    /// the screen layout.
-    private var answerField: some View {
-        TextField("Song title or artist — title", text: $viewModel.guess)
-            .textFieldStyle(.plain)
-            .font(.title3)
-            .padding(AppTheme.Spacing.lg)
-            .background(AppTheme.surface, in: RoundedRectangle(cornerRadius: AppTheme.smallCornerRadius))
-            .foregroundStyle(AppTheme.primaryText)
-            .submitLabel(.go)
-            .focused($answerFieldFocused)
-            .onSubmit {
-                viewModel.submit()
-            }
-            .onChange(of: viewModel.guess) {
-                viewModel.guessDidChange()
-            }
-            .accessibilityIdentifier(AccessibilityID.quizAnswerField)
-            .accessibilityHint("Type the song title, or artist and title")
-            .onGeometryChange(for: CGFloat.self, of: { $0.size.height }) { height in
-                fieldHeight = height
-            }
-            .overlay(alignment: .top) {
-                if !viewModel.suggestions.isEmpty {
-                    suggestionList
-                        .offset(y: fieldHeight + AppTheme.Spacing.sm)
-                        .transition(.opacity)
-                        .animation(.easeOut(duration: 0.15), value: viewModel.suggestions.isEmpty)
-                }
-            }
-            .zIndex(1)
-    }
-
-    private var suggestionList: some View {
-        VStack(spacing: 0) {
-            ForEach(viewModel.suggestions, id: \.track.id) { suggestion in
-                Button {
-                    viewModel.select(suggestion)
-                } label: {
-                    SuggestionRow(suggestion: suggestion)
-                }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier(AccessibilityID.quizSuggestion)
-                .accessibilityLabel("\(suggestion.track.title), \(suggestion.track.artist)")
-
-                if suggestion.track.id != viewModel.suggestions.last?.track.id {
-                    Divider()
-                        .overlay(AppTheme.surfaceBorder)
-                }
-            }
-        }
-        .panel(cornerRadius: AppTheme.smallCornerRadius)
-        .shadow(color: .black.opacity(0.45), radius: 16, y: 8)
     }
 
     // MARK: - Actions

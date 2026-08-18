@@ -1,7 +1,8 @@
 import XCTest
 @testable import SongRecall
 
-/// View-model level tests for the debounced, catalog-wide autocomplete.
+/// View-model level tests for the debounced, catalog-wide autocomplete
+/// and keyboard return handling.
 @MainActor
 final class QuizViewModelSuggestionTests: XCTestCase {
     private let url = URL(string: "ipod-library://item/item.mp3?id=1")!
@@ -19,7 +20,6 @@ final class QuizViewModelSuggestionTests: XCTestCase {
         return QuizViewModel(
             engine: engine,
             audioPlayer: StubAudioPlayer(),
-            mediaLibrary: StubMediaLibrary(mode: .ready),
             catalog: catalog,
             onFinish: { _ in }
         )
@@ -52,7 +52,6 @@ final class QuizViewModelSuggestionTests: XCTestCase {
         let vm = QuizViewModel(
             engine: engine,
             audioPlayer: StubAudioPlayer(),
-            mediaLibrary: StubMediaLibrary(mode: .ready),
             catalog: catalog,
             onFinish: { _ in }
         )
@@ -65,7 +64,7 @@ final class QuizViewModelSuggestionTests: XCTestCase {
         XCTAssertEqual(vm.suggestions.first?.track.id, excluded.id)
     }
 
-    func testEmptyQueryClearsSuggestionsImmediately() async throws {
+    func testEmptyQueryKeepsDropdownOpen() async throws {
         let vm = makeViewModel(catalog: StubMediaLibrary.tracks)
         vm.start()
         vm.guess = "gam"
@@ -73,10 +72,47 @@ final class QuizViewModelSuggestionTests: XCTestCase {
         try await Task.sleep(for: .milliseconds(600))
         XCTAssertFalse(vm.suggestions.isEmpty)
 
-        vm.guess = "   "
+        // Clearing the input keeps the last results so enter can pick
+        // the first suggestion.
+        vm.guess = ""
         vm.guessDidChange()
-        // No debounce wait: clearing is immediate.
-        XCTAssertTrue(vm.suggestions.isEmpty)
+        XCTAssertFalse(vm.suggestions.isEmpty)
+        XCTAssertEqual(vm.suggestions.first?.track.id, 3)
+    }
+
+    func testSubmitFromKeyboardSelectsFirstSuggestionWhenFieldEmpty() async throws {
+        let vm = makeViewModel(catalog: StubMediaLibrary.tracks)
+        vm.start()
+        vm.guess = "gam"
+        vm.guessDidChange()
+        try await Task.sleep(for: .milliseconds(600))
+        XCTAssertEqual(vm.suggestions.first?.track.id, 3) // Gamma Song = round 1 answer
+
+        vm.guess = ""
+        vm.guessDidChange()
+        vm.submitFromKeyboard()
+
+        XCTAssertEqual(vm.feedback, .correct(score: 1_000))
+    }
+
+    func testSubmitFromKeyboardDoesNothingWhenEmptyAndNoDropdown() {
+        let vm = makeViewModel(catalog: StubMediaLibrary.tracks)
+        vm.start()
+        vm.guess = ""
+        vm.submitFromKeyboard()
+
+        // Pressing return with an empty field must never cause a wrong answer.
+        XCTAssertEqual(vm.feedback, .none)
+        XCTAssertTrue(vm.roundIsActive)
+    }
+
+    func testSubmitFromKeyboardSubmitsNonEmptyGuess() {
+        let vm = makeViewModel(catalog: StubMediaLibrary.tracks)
+        vm.start()
+        vm.guess = "Not A Real Title"
+        vm.submitFromKeyboard()
+
+        XCTAssertEqual(vm.feedback, .wrong)
     }
 
     func testSettlingARoundClearsSuggestions() async throws {

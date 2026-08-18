@@ -2,6 +2,10 @@ import XCTest
 
 /// End-to-end journey against the stub library (`-uitest-library ready`,
 /// seed 0 selection order: Gamma Song, Beta Song, Alpha Song).
+///
+/// While the keyboard is up the bottom action buttons are covered, so
+/// answers are submitted with the return key (`\n`), matching the
+/// primary in-quiz interaction.
 final class QuizJourneyTests: XCTestCase {
     private var app: XCUIApplication!
 
@@ -21,19 +25,19 @@ final class QuizJourneyTests: XCTestCase {
 
         startButton.tap()
 
-        // Round 1: correct answer for Gamma Song.
+        // Round 1: correct answer for Gamma Song via return key.
         assertRound(number: 1, of: 3)
         answer("Gamma Song")
         assertFeedback(contains: "Correct")
         app.buttons[AccessibilityID.quizNext].tap()
 
-        // Round 2: wrong answer for Beta Song.
+        // Round 2: wrong answer for Beta Song via return key.
         assertRound(number: 2, of: 3)
         answer("Not A Real Title")
         assertFeedback(contains: "Not this time")
         app.buttons[AccessibilityID.quizNext].tap()
 
-        // Round 3: skip for Alpha Song.
+        // Round 3: skip for Alpha Song (keyboard is down).
         assertRound(number: 3, of: 3)
         app.buttons[AccessibilityID.quizSkip].tap()
         assertFeedback(contains: "Skipped")
@@ -75,28 +79,14 @@ final class QuizJourneyTests: XCTestCase {
         XCTAssertTrue(acceptable.contains(round.label), "Expected round \(number) of \(total), got \(round.label)")
         XCTAssertTrue(app.staticTexts[AccessibilityID.quizTimer].exists)
         XCTAssertTrue(app.staticTexts[AccessibilityID.quizScore].exists)
-        XCTAssertTrue(app.otherElements[AccessibilityID.quizArtwork].exists
-                      || app.images[AccessibilityID.quizArtwork].exists)
     }
 
     private func answer(_ text: String) {
         let field = app.textFields[AccessibilityID.quizAnswerField]
         XCTAssertTrue(field.waitForExistence(timeout: 5))
         field.tap()
-        field.typeText(text)
-        // Wait until the guess registers so Submit is enabled before tapping.
-        let submit = app.buttons[AccessibilityID.quizSubmit]
-        waitUntil(submit.isEnabled, timeout: 5)
-        submit.tap()
-    }
-
-    private func waitUntil(_ condition: @autoclosure () -> Bool, timeout: TimeInterval = 5) {
-        let deadline = Date().addingTimeInterval(timeout)
-        while Date() < deadline {
-            if condition() { return }
-            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
-        }
-        XCTFail("Condition not met within \(timeout)s")
+        // The trailing newline presses the return key, submitting the answer.
+        field.typeText("\(text)\n")
     }
 
     private func assertFeedback(contains text: String) {
@@ -114,7 +104,6 @@ private enum AccessibilityID {
     static let quizRound = "quiz.round"
     static let quizTimer = "quiz.timer"
     static let quizScore = "quiz.score"
-    static let quizArtwork = "quiz.artwork"
     static let quizAnswerField = "quiz.answerField"
     static let quizSubmit = "quiz.submit"
     static let quizSkip = "quiz.skip"

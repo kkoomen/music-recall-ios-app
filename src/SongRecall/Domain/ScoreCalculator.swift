@@ -2,14 +2,14 @@ import Foundation
 
 /// Scoring: 10 base points plus one point per full remaining second
 /// (matching the displayed countdown), doubled when the answer lands
-/// within the first 25 seconds. Wrong answers deduct 5, skips deduct
-/// 10; the cumulative score never goes below 0. Timeout and playback
-/// interruption score 0.
+/// within the first 5 seconds (25 or more seconds remaining on the
+/// clock). Wrong answers deduct 5, skips deduct 10; the cumulative
+/// score never goes below 0. Timeout and playback interruption score 0.
 enum ScoreCalculator {
     /// Base points for any correct answer.
     static let basePoints = 10
     /// Answers at or before this many seconds of round start earn 2x.
-    static let fastThreshold: TimeInterval = 25
+    static let fastThreshold: TimeInterval = 5
     /// Points deducted for a wrong answer.
     static let wrongPenalty = 5
     /// Points deducted when the player skips.

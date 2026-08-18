@@ -46,6 +46,14 @@ Reason: User feedback; the 5-second window almost never triggered in practice, s
 
 Consequence: Nearly every correct answer inside the 30-second round now shows the "You're fast! 2x multiplier" celebration; only answers in the final 5 seconds (after 25s) score without the multiplier. Boundary tests and docs updated.
 
+## 2026-08-18: Fast-answer multiplier window reverted to 5 seconds
+
+Decision: The 2x multiplier applies only to correct answers at or before 5 seconds (25 or more seconds remaining on the clock).
+
+Reason: The 25-second window made the multiplier show on every correct answer, which diluted the celebration; the user wants it to be a genuine speed bonus.
+
+Consequence: "You're fast! 2x multiplier" shows only for answers in the first 5 seconds; everything after that scores without the multiplier. Boundary tests and docs updated.
+
 ## Update rule
 
 Add dated entries when a decision changes. Link the affected ROADMAP section. Do not silently rewrite history.

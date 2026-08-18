@@ -54,7 +54,7 @@ For a correct answer submitted before timeout:
 (10 + remaining seconds) × multiplier, where remaining seconds match the displayed countdown.
 
 - Immediate answer earns 40 points (10 + 30 remaining) doubled to 80.
-- Answering within the first 25 seconds (or less) applies a 2x multiplier (shown as "You're fast!" with a highlighted 2x badge).
+- Answering within the first 5 seconds (25 or more seconds remaining on the clock) applies a 2x multiplier (shown as "You're fast!" with a highlighted 2x badge).
 - Answer at thirty seconds earns 10 points (no remaining time).
 - Wrong answer: −5 points.
 - Skip: −10 points.

@@ -10,6 +10,7 @@ final class AppModel: ObservableObject {
     private let audioPlayer: AudioPlaying
     private let clock: Clocking
     private let random: RandomSource
+    private let roundDurationOverride: TimeInterval?
 
     private(set) var quizViewModel: QuizViewModel?
 
@@ -17,12 +18,14 @@ final class AppModel: ObservableObject {
         mediaLibrary: MediaLibraryProviding,
         audioPlayer: AudioPlaying,
         clock: Clocking,
-        random: RandomSource
+        random: RandomSource,
+        roundDurationOverride: TimeInterval? = nil
     ) {
         self.mediaLibrary = mediaLibrary
         self.audioPlayer = audioPlayer
         self.clock = clock
         self.random = random
+        self.roundDurationOverride = roundDurationOverride
     }
 
     /// Builds the production app model, or a UI-test stub model when
@@ -37,7 +40,8 @@ final class AppModel: ObservableObject {
                 mediaLibrary: StubMediaLibrary(mode: mode),
                 audioPlayer: StubAudioPlayer(),
                 clock: SystemClock(),
-                random: SeededRandomSource(seed: 0)
+                random: SeededRandomSource(seed: 0),
+                roundDurationOverride: uitestRoundDuration()
             )
         }
         return AppModel(
@@ -46,6 +50,18 @@ final class AppModel: ObservableObject {
             clock: SystemClock(),
             random: SystemRandomSource()
         )
+    }
+
+    /// Reads an optional `-uitest-round-duration` launch argument so UI
+    /// tests can exercise timeout without waiting 30 real seconds.
+    private static func uitestRoundDuration() -> TimeInterval? {
+        let arguments = ProcessInfo.processInfo.arguments
+        guard let index = arguments.firstIndex(of: "-uitest-round-duration"),
+              arguments.indices.contains(index + 1),
+              let duration = TimeInterval(arguments[index + 1]),
+              duration > 0
+        else { return nil }
+        return duration
     }
 
     func loadLibrary() async {
@@ -83,7 +99,13 @@ final class AppModel: ObservableObject {
 
     func startQuiz() {
         guard case .ready(let tracks) = libraryState, !tracks.isEmpty else { return }
-        let engine = QuizEngine(catalog: tracks, random: random, clock: clock)
+        let configuration: QuizConfiguration
+        if let roundDurationOverride {
+            configuration = QuizConfiguration(roundCount: 10, roundDuration: roundDurationOverride)
+        } else {
+            configuration = .default
+        }
+        let engine = QuizEngine(catalog: tracks, configuration: configuration, random: random, clock: clock)
         let viewModel = QuizViewModel(
             engine: engine,
             audioPlayer: audioPlayer,

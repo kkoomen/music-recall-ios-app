@@ -24,6 +24,15 @@ struct QuizView: View {
         .padding(AppTheme.Spacing.xl)
         .onAppear {
             viewModel.start()
+            // Auto-focus the answer field when the quiz starts.
+            answerFieldFocused = true
+        }
+        .onChange(of: viewModel.feedback) { _, newFeedback in
+            // Dismiss the keyboard once a round settles so the answer
+            // reveal and bottom action buttons are visible.
+            if newFeedback != .none {
+                answerFieldFocused = false
+            }
         }
     }
 
@@ -104,6 +113,7 @@ struct QuizView: View {
             .onSubmit {
                 viewModel.submitFromKeyboard()
             }
+            .disabled(!viewModel.roundIsActive)
             .onChange(of: viewModel.guess) {
                 viewModel.guessDidChange()
             }

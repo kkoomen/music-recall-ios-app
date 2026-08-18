@@ -14,12 +14,22 @@ final class AccessibilityUITests: XCTestCase {
         XCTAssertTrue(startButton.waitForExistence(timeout: 5))
         startButton.tap()
 
-        let submit = app.buttons["quiz.submit"]
-        XCTAssertTrue(submit.waitForExistence(timeout: 5))
-        XCTAssertTrue(submit.isHittable, "Submit button must stay hittable at large Dynamic Type")
+        // The answer field auto-focuses when the quiz starts.
+        let field = app.textFields["quiz.answerField"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5),
+                      "Input must auto-focus and show the keyboard at quiz start")
+
+        // Settle the round via the return key; the keyboard dismisses and
+        // the bottom action button becomes usable.
+        field.typeText("zzz\n")
+
+        let next = app.buttons["quiz.next"]
+        XCTAssertTrue(next.waitForExistence(timeout: 5))
+        XCTAssertTrue(next.isHittable, "Next button must stay hittable at large Dynamic Type")
 
         let window = app.windows.firstMatch
-        XCTAssertTrue(window.frame.contains(submit.frame), "Submit button must stay inside the window")
+        XCTAssertTrue(window.frame.contains(next.frame), "Next button must stay inside the window")
 
         let timer = app.staticTexts["quiz.timer"]
         XCTAssertTrue(timer.exists && timer.isHittable, "Timer must stay visible at large Dynamic Type")

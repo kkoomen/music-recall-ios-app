@@ -181,13 +181,10 @@ struct QuizView: View {
         }
     }
 
+    /// Shows the correct answer in the middle of the screen whenever a
+    /// round ends (correct, wrong, skip, timeout, or interruption).
     private var shouldRevealAnswer: Bool {
-        switch viewModel.feedback {
-        case .none, .correct:
-            return false
-        case .wrong, .skipped, .timedOut, .interrupted:
-            return true
-        }
+        viewModel.feedback != .none
     }
 
     // MARK: - Feedback

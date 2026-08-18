@@ -45,7 +45,7 @@ The answer field auto-focuses when the quiz starts; once a round settles the key
 
 ## Answer reveal
 
-When a round ends without a correct guess (wrong answer, skip, timeout, or playback interruption), the correct song is revealed centered in the middle of the quiz screen without a container: the title in larger white text with the artist in smaller grey text underneath. Correct answers show no reveal.
+Whenever a round ends — correct answer, wrong answer, skip, timeout, or playback interruption — the song is revealed centered in the middle of the quiz screen without a container: the title in larger white text with the artist in smaller grey text underneath.
 
 ## Scoring
 

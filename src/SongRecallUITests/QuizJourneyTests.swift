@@ -1,0 +1,114 @@
+import XCTest
+
+/// End-to-end journey against the stub library (`-uitest-library ready`,
+/// seed 0 selection order: Gamma Song, Beta Song, Alpha Song).
+final class QuizJourneyTests: XCTestCase {
+    private var app: XCUIApplication!
+
+    override func setUpWithError() throws {
+        continueAfterFailure = false
+        app = XCUIApplication()
+        app.launchArguments = ["-uitest-library", "ready"]
+    }
+
+    func testFullJourneyToResultsAndReplay() throws {
+        app.launch()
+
+        // Home: track count and start button.
+        let startButton = app.buttons[AccessibilityID.homeStartQuiz]
+        XCTAssertTrue(startButton.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts[AccessibilityID.homeTrackCount].exists)
+
+        startButton.tap()
+
+        // Round 1: correct answer for Gamma Song.
+        assertRound(number: 1, of: 3)
+        answer("Gamma Song")
+        assertFeedback(contains: "Correct")
+        app.buttons[AccessibilityID.quizNext].tap()
+
+        // Round 2: wrong answer for Beta Song.
+        assertRound(number: 2, of: 3)
+        answer("Not A Real Title")
+        assertFeedback(contains: "Not this time")
+        app.buttons[AccessibilityID.quizNext].tap()
+
+        // Round 3: skip for Alpha Song.
+        assertRound(number: 3, of: 3)
+        app.buttons[AccessibilityID.quizSkip].tap()
+        assertFeedback(contains: "Skipped")
+        app.buttons[AccessibilityID.quizNext].tap()
+
+        // Results.
+        XCTAssertTrue(app.staticTexts[AccessibilityID.resultsScore].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts[AccessibilityID.resultsCorrect].exists)
+        XCTAssertTrue(app.staticTexts[AccessibilityID.resultsAccuracy].exists)
+
+        // Replay starts a fresh quiz.
+        app.buttons[AccessibilityID.resultsReplay].tap()
+        assertRound(number: 1, of: 3)
+    }
+
+    func testEmptyLibraryShowsGuidance() throws {
+        app.launchArguments = ["-uitest-library", "empty"]
+        app.launch()
+        let title = app.staticTexts[AccessibilityID.permissionTitle]
+        XCTAssertTrue(title.waitForExistence(timeout: 5))
+        XCTAssertEqual(title.label, "No local songs found")
+    }
+
+    func testDeniedLibraryShowsSettingsPath() throws {
+        app.launchArguments = ["-uitest-library", "denied"]
+        app.launch()
+        let title = app.staticTexts[AccessibilityID.permissionTitle]
+        XCTAssertTrue(title.waitForExistence(timeout: 5))
+        XCTAssertEqual(title.label, "Music access is turned off")
+        XCTAssertTrue(app.buttons[AccessibilityID.permissionSettings].exists)
+    }
+
+    // MARK: - Helpers
+
+    private func assertRound(number: Int, of total: Int) {
+        let round = app.staticTexts[AccessibilityID.quizRound]
+        XCTAssertTrue(round.waitForExistence(timeout: 5))
+        XCTAssertTrue(round.label.contains("\(number) / \(total)"), "Expected round \(number) of \(total), got \(round.label)")
+        XCTAssertTrue(app.staticTexts[AccessibilityID.quizTimer].exists)
+        XCTAssertTrue(app.staticTexts[AccessibilityID.quizScore].exists)
+        XCTAssertTrue(app.otherElements[AccessibilityID.quizArtwork].exists
+                      || app.images[AccessibilityID.quizArtwork].exists)
+    }
+
+    private func answer(_ text: String) {
+        let field = app.textFields[AccessibilityID.quizAnswerField]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        field.tap()
+        field.typeText(text)
+        app.buttons[AccessibilityID.quizSubmit].tap()
+    }
+
+    private func assertFeedback(contains text: String) {
+        let feedback = app.staticTexts[AccessibilityID.quizFeedback]
+        XCTAssertTrue(feedback.waitForExistence(timeout: 5))
+        XCTAssertTrue(feedback.label.contains(text), "Expected feedback containing \(text), got \(feedback.label)")
+    }
+}
+
+private enum AccessibilityID {
+    static let homeStartQuiz = "home.startQuiz"
+    static let homeTrackCount = "home.trackCount"
+    static let permissionTitle = "permission.title"
+    static let permissionSettings = "permission.settings"
+    static let quizRound = "quiz.round"
+    static let quizTimer = "quiz.timer"
+    static let quizScore = "quiz.score"
+    static let quizArtwork = "quiz.artwork"
+    static let quizAnswerField = "quiz.answerField"
+    static let quizSubmit = "quiz.submit"
+    static let quizSkip = "quiz.skip"
+    static let quizNext = "quiz.next"
+    static let quizFeedback = "quiz.feedback"
+    static let resultsScore = "results.score"
+    static let resultsCorrect = "results.correct"
+    static let resultsAccuracy = "results.accuracy"
+    static let resultsReplay = "results.replay"
+}

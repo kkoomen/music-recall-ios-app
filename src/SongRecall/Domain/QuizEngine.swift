@@ -27,6 +27,9 @@ final class QuizEngine {
 
     var state: QuizState { session.state }
     var currentRound: QuizRound? { session.currentRound }
+    /// Monotonic elapsed seconds from the injected clock, used by the
+    /// UI timer display.
+    var now: TimeInterval { clock.now }
 
     @discardableResult
     func begin() -> QuizState {

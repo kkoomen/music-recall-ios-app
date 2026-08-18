@@ -1,14 +1,16 @@
 import XCTest
 
-/// Proves the UI-test target can launch the app on the simulator.
+/// Proves the UI-test target launches the app on the simulator with the
+/// stub library.
 final class LaunchTests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
     }
 
-    func testLaunch() throws {
+    func testLaunchShowsHome() throws {
         let app = XCUIApplication()
+        app.launchArguments = ["-uitest-library", "ready"]
         app.launch()
-        XCTAssertTrue(app.staticTexts["root.placeholder"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["home.startQuiz"].waitForExistence(timeout: 10))
     }
 }

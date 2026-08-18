@@ -255,7 +255,7 @@ Notes from implementation:
 
 Same answer time always produces same score. Timeout and duplicate submissions cannot change score.
 
-## [ ] 6. Home, permission, quiz, and results UI
+## [x] 6. Home, permission, quiz, and results UI (Completed)
 
 ### Goal
 
@@ -272,6 +272,12 @@ Deliver the complete first-use-to-results journey with minimal, polished interac
 - Give all interactive elements stable accessibility identifiers.
 - Keep state ownership in feature view models, not view bodies.
 
+Notes from implementation:
+
+- `AppModel` is the composition root (real services vs. `-uitest-library` stub mode via launch arguments). `QuizViewModel` owns round flow: timer tick drives remaining time and calls `markTimedOutIfNeeded`; first terminal event wins; audio prepares/plays/stops per round; interruption and prepare failure surface a visible recovery.
+- UI tests run the full journey against the stub library with deterministic seed-0 selection (Gamma, Beta, Alpha Song) and cover correct, wrong, and skipped feedback, results, and replay.
+- All identifiers are centralized in `App/AccessibilityID.swift`.
+
 ### Agents
 
 - SwiftUI-design agent owns composition, layout, styling, and motion.
@@ -281,12 +287,12 @@ Deliver the complete first-use-to-results journey with minimal, polished interac
 
 ### Checklist
 
-- [ ] First launch flow works.
-- [ ] Home-to-quiz flow works.
-- [ ] Correct, wrong, skip, and timeout feedback works.
-- [ ] Results and replay work.
-- [ ] Loading and failure states are visible.
-- [ ] Accessibility labels and identifiers exist.
+- [x] First launch flow works.
+- [x] Home-to-quiz flow works.
+- [x] Correct, wrong, skip, and timeout feedback works.
+- [x] Results and replay work.
+- [x] Loading and failure states are visible.
+- [x] Accessibility labels and identifiers exist.
 
 ### Acceptance gate
 

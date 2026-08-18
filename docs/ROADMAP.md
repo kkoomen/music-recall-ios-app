@@ -58,6 +58,8 @@ Create a buildable iOS 26+ SwiftUI application shell mapped to src/ and tests/.
 - Add a stable SongRecall scheme.
 - Keep external dependencies empty.
 
+Note: per the 2026-08-18 decision-log entry, the source layout now mirrors the sibling `zihe` project: app source lives in `src/SongRecall/`, unit tests in `src/SongRecallTests/`, UI tests in `src/SongRecallUITests/`, with the project at `src/SongRecall.xcodeproj`.
+
 ### Agents
 
 - Builder creates project settings and app shell.
@@ -120,7 +122,7 @@ Notes from implementation:
 
 On a real iPhone, authorized local songs appear without network calls. Denied and empty states remain usable.
 
-## [ ] 3. Audio playback runtime
+## [x] 3. Audio playback runtime (Completed)
 
 ### Goal
 
@@ -137,6 +139,13 @@ Play selected local audio from the beginning and stop it at every round boundary
 - Keep audio runtime on the main actor where framework ownership requires it.
 - Inject a fake player for tests.
 
+Notes from implementation:
+
+- `AudioPlaying` is a main-actor protocol; the quiz layer owns when a round ends. The runtime only reports system-driven interruptions via `onPlaybackInterruption` after stopping itself.
+- `AVPlayerAudioPlayer` prepares with `AVURLAsset.load(.isPlayable)` (throws `PlaybackError.assetUnavailable`), seeks to zero on prepare and again before every play, and observes interruption + route-change notifications as async sequences.
+- The fake player records a deterministic event stream (`prepare`, `play`, `stop`) used by quiz tests in roadmap section 4.
+- Device audio checks are recorded as blocked in docs/decision-log.md.
+
 ### Agents
 
 - Audio-runtime agent owns playback lifecycle.
@@ -146,11 +155,11 @@ Play selected local audio from the beginning and stop it at every round boundary
 
 ### Checklist
 
-- [ ] Playback starts at zero.
-- [ ] Playback stops at every terminal round state.
-- [ ] Playback failure has visible recovery.
-- [ ] Interruption behavior is defined.
-- [ ] Fake-player tests pass.
+- [x] Playback starts at zero.
+- [x] Playback stops at every terminal round state.
+- [x] Playback failure has visible recovery.
+- [x] Interruption behavior is defined.
+- [x] Fake-player tests pass.
 - [ ] Device audio test passes.
 
 ### Acceptance gate

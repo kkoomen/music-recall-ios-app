@@ -30,8 +30,9 @@ Song Recall is a private iPhone music-memory quiz. It reads locally available so
 
 ## Repository rules
 
-- Keep feature code and the Xcode project under src/.
-- Keep tests under tests/.
+- Keep feature code under src/SongRecall/.
+- Keep unit tests under src/SongRecallTests/ and UI tests under src/SongRecallUITests/.
+- Keep the Xcode project at src/SongRecall.xcodeproj.
 - Keep written project knowledge under docs/.
 - Keep Pi role instructions under .pi/agents/.
 - Do not put Swift source in docs, .pi/agents, or temporary structure placeholders.

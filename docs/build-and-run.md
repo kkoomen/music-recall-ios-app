@@ -2,13 +2,13 @@
 
 ## Local setup
 
-Install Xcode 26 or later. Open `SongRecall.xcodeproj` at the repository root. Select the `SongRecall` scheme and an iOS 26 simulator (for example `iPhone 17`) or a connected iPhone.
+Install Xcode 26 or later. Open `src/SongRecall.xcodeproj`. Select the `SongRecall` scheme and an iOS 26 simulator (for example `iPhone 17`) or a connected iPhone.
 
 The project uses file-system-synchronized folders:
 
-- `src/` feeds the `SongRecall` app target.
-- `tests/Unit/` and `tests/Fixtures/` feed the `SongRecallTests` unit-test target.
-- `tests/UI/` feeds the `SongRecallUITests` UI-test target.
+- `src/SongRecall/` feeds the `SongRecall` app target.
+- `src/SongRecallTests/` (including its `Fixtures/` subfolder) feeds the `SongRecallTests` unit-test target.
+- `src/SongRecallUITests/` feeds the `SongRecallUITests` UI-test target.
 
 Adding or removing files inside those folders is picked up automatically; no project-file edits are needed.
 

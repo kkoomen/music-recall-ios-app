@@ -26,6 +26,14 @@ Reason: Minimal first loop with clear speed incentive.
 
 Add dated entries when a decision changes. Link the affected ROADMAP section. Do not silently rewrite history.
 
+## 2026-08-18: Source layout aligned with zihe
+
+Decision: `src/` mirrors the sibling `zihe` project layout: `src/SongRecall/` (app source), `src/SongRecall.xcodeproj`, `src/SongRecallTests/`, `src/SongRecallUITests/`.
+
+Reason: Consistent structure across the user's projects; the repo-root `tests/` folder was replaced by the per-target test folders next to the project.
+
+Consequence: `AGENTS.md`, `src/STRUCTURE.md`, and `docs/build-and-run.md` now document the new paths. Synchronized groups reference `SongRecall/`, `SongRecallTests/`, and `SongRecallUITests/`.
+
 ## 2026-08-18: Device-only checks blocked
 
 Decision: Physical-device media-library and audio checks cannot run in this environment (no signed iPhone build executed).

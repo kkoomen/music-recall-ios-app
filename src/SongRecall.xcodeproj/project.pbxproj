@@ -36,49 +36,19 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		A0000000000000000000000A /* App */ = {
+		A0000000000000000000000A /* SongRecall */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = App;
+			path = SongRecall;
 			sourceTree = "<group>";
 		};
-		A0000000000000000000000B /* Domain */ = {
+		A00000000000000000000013 /* SongRecallTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Domain;
+			path = SongRecallTests;
 			sourceTree = "<group>";
 		};
-		A0000000000000000000000C /* Services */ = {
+		A00000000000000000000014 /* SongRecallUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Services;
-			sourceTree = "<group>";
-		};
-		A0000000000000000000000D /* Features */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Features;
-			sourceTree = "<group>";
-		};
-		A0000000000000000000000E /* DesignSystem */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = DesignSystem;
-			sourceTree = "<group>";
-		};
-		A0000000000000000000000F /* Resources */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Resources;
-			sourceTree = "<group>";
-		};
-		A00000000000000000000013 /* Unit */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = ../tests/Unit;
-			sourceTree = "<group>";
-		};
-		A00000000000000000000014 /* UI */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = ../tests/UI;
-			sourceTree = "<group>";
-		};
-		A00000000000000000000015 /* Fixtures */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = ../tests/Fixtures;
+			path = SongRecallUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -113,15 +83,9 @@
 		A00000000000000000000002 = {
 			isa = PBXGroup;
 			children = (
-				A0000000000000000000000A /* App */,
-				A0000000000000000000000B /* Domain */,
-				A0000000000000000000000C /* Services */,
-				A0000000000000000000000D /* Features */,
-				A0000000000000000000000E /* DesignSystem */,
-				A0000000000000000000000F /* Resources */,
-				A00000000000000000000013 /* Unit */,
-				A00000000000000000000014 /* UI */,
-				A00000000000000000000015 /* Fixtures */,
+				A0000000000000000000000A /* SongRecall */,
+				A00000000000000000000013 /* SongRecallTests */,
+				A00000000000000000000014 /* SongRecallUITests */,
 				A00000000000000000000007 /* XCTest.framework */,
 				A00000000000000000000003 /* Products */,
 			);
@@ -153,12 +117,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				A0000000000000000000000A /* App */,
-				A0000000000000000000000B /* Domain */,
-				A0000000000000000000000C /* Services */,
-				A0000000000000000000000D /* Features */,
-				A0000000000000000000000E /* DesignSystem */,
-				A0000000000000000000000F /* Resources */,
+				A0000000000000000000000A /* SongRecall */,
 			);
 			name = SongRecall;
 			packageProductDependencies = (
@@ -181,8 +140,7 @@
 				A00000000000000000000041 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				A00000000000000000000013 /* Unit */,
-				A00000000000000000000015 /* Fixtures */,
+				A00000000000000000000013 /* SongRecallTests */,
 			);
 			name = SongRecallTests;
 			packageProductDependencies = (
@@ -205,7 +163,7 @@
 				A00000000000000000000043 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				A00000000000000000000014 /* UI */,
+				A00000000000000000000014 /* SongRecallUITests */,
 			);
 			name = SongRecallUITests;
 			packageProductDependencies = (

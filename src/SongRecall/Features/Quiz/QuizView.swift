@@ -224,7 +224,7 @@ struct QuizView: View {
                 .background(AppTheme.accent, in: Capsule())
                 .accessibilityHidden(true)
 
-            Text("+\\(points) points")
+            Text("+\(points) points")
                 .font(.title3.weight(.bold))
                 .foregroundStyle(AppTheme.success)
         }

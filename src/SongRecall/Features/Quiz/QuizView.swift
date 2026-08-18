@@ -236,7 +236,7 @@ struct QuizView: View {
         .panel(cornerRadius: AppTheme.cardCornerRadius)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier(AccessibilityID.quizFeedback)
-        .accessibilityLabel("You're fast! 2x multiplier, plus \\(points) points")
+        .accessibilityLabel(FeedbackStrings.correct(points: points, isFast: true))
         .transition(reduceMotion ? .opacity : .scale.combined(with: .opacity))
     }
 
@@ -244,7 +244,7 @@ struct QuizView: View {
         HStack(spacing: 10) {
             Image(systemName: "checkmark.circle.fill")
                 .font(.headline)
-            Text("Correct! +\\(points) points")
+            Text(FeedbackStrings.correct(points: points, isFast: false))
                 .font(.headline)
         }
         .foregroundStyle(AppTheme.success)
@@ -253,7 +253,7 @@ struct QuizView: View {
         .panel(cornerRadius: AppTheme.smallCornerRadius)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier(AccessibilityID.quizFeedback)
-        .accessibilityLabel("Correct, plus \\(points) points")
+        .accessibilityLabel(FeedbackStrings.correct(points: points, isFast: false))
         .transition(reduceMotion ? .opacity : .scale.combined(with: .opacity))
     }
 
@@ -278,10 +278,10 @@ struct QuizView: View {
     private var feedbackText: String {
         switch viewModel.feedback {
         case .none, .correct: return ""
-        case .wrong(let points): return "Not this time (\(points))"
-        case .skipped(let points): return "Skipped (\(points))"
-        case .timedOut: return "Time's up"
-        case .interrupted: return "Playback was interrupted"
+        case .wrong(let points): return FeedbackStrings.wrong(points: points)
+        case .skipped(let points): return FeedbackStrings.skipped(points: points)
+        case .timedOut: return FeedbackStrings.timedOut
+        case .interrupted: return FeedbackStrings.interrupted
         }
     }
 

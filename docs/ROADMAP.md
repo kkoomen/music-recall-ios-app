@@ -41,7 +41,7 @@ Provide project folders, documentation contracts, agent roles, and execution rul
 
 Directory structure exists, all Markdown contracts exist, and repository contains no Swift source.
 
-## [ ] 1. Native Xcode project foundation
+## [x] 1. Native Xcode project foundation (Completed)
 
 ### Goal
 
@@ -67,11 +67,11 @@ Create a buildable iOS 26+ SwiftUI application shell mapped to src/ and tests/.
 
 ### Checklist
 
-- [ ] Project opens in Xcode.
-- [ ] App target builds for iOS Simulator.
-- [ ] Unit-test target discovers.
-- [ ] UI-test target launches.
-- [ ] No third-party dependency exists.
+- [x] Project opens in Xcode.
+- [x] App target builds for iOS Simulator.
+- [x] Unit-test target discovers.
+- [x] UI-test target launches.
+- [x] No third-party dependency exists.
 
 ### Acceptance gate
 

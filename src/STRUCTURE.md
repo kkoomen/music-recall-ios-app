@@ -1,6 +1,12 @@
 # Source Structure
 
-No Swift implementation exists yet. This directory defines intended ownership.
+`SongRecall.xcodeproj` lives in this directory. Its file-system-synchronized groups map:
+
+- `App`, `Domain`, `Services`, `Features`, `DesignSystem`, `Resources` to the `SongRecall` app target.
+- `../tests/Unit` and `../tests/Fixtures` to the `SongRecallTests` unit-test target.
+- `../tests/UI` to the `SongRecallUITests` UI-test target.
+
+Ownership:
 
 - App: app entry point and composition root.
 - Domain: pure models, quiz state, answer matching, scoring, and rules.

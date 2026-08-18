@@ -109,7 +109,8 @@ final class AppModel: ObservableObject {
         let viewModel = QuizViewModel(
             engine: engine,
             audioPlayer: audioPlayer,
-            mediaLibrary: mediaLibrary
+            mediaLibrary: mediaLibrary,
+            catalog: tracks
         ) { [weak self] result in
             self?.finishQuiz(result)
         }

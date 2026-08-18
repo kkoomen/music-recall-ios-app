@@ -7,6 +7,7 @@ struct QuizView: View {
     @FocusState private var answerFieldFocused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var artworkAccent: Color?
+    @State private var fieldHeight: CGFloat = 0
 
     var body: some View {
         VStack(spacing: AppTheme.Spacing.xl) {
@@ -191,28 +192,43 @@ struct QuizView: View {
     private var answerSection: some View {
         VStack(spacing: AppTheme.Spacing.md) {
             if viewModel.roundIsActive {
-                TextField("Song title or artist — title", text: $viewModel.guess)
-                    .textFieldStyle(.plain)
-                    .font(.title3)
-                    .padding(AppTheme.Spacing.lg)
-                    .background(AppTheme.surface, in: RoundedRectangle(cornerRadius: AppTheme.smallCornerRadius))
-                    .foregroundStyle(AppTheme.primaryText)
-                    .submitLabel(.go)
-                    .focused($answerFieldFocused)
-                    .onSubmit {
-                        viewModel.submit()
-                    }
-                    .accessibilityIdentifier(AccessibilityID.quizAnswerField)
-                    .accessibilityHint("Type the song title, or artist and title")
-                    .disabled(!viewModel.roundIsActive)
-                    .transition(.opacity)
-
-                if !viewModel.suggestions.isEmpty {
-                    suggestionList
-                        .transition(.opacity)
-                }
+                answerField
             }
         }
+    }
+
+    /// The answer input with the autocomplete overlay attached below it.
+    /// The overlay floats above surrounding content and never affects
+    /// the screen layout.
+    private var answerField: some View {
+        TextField("Song title or artist — title", text: $viewModel.guess)
+            .textFieldStyle(.plain)
+            .font(.title3)
+            .padding(AppTheme.Spacing.lg)
+            .background(AppTheme.surface, in: RoundedRectangle(cornerRadius: AppTheme.smallCornerRadius))
+            .foregroundStyle(AppTheme.primaryText)
+            .submitLabel(.go)
+            .focused($answerFieldFocused)
+            .onSubmit {
+                viewModel.submit()
+            }
+            .onChange(of: viewModel.guess) {
+                viewModel.guessDidChange()
+            }
+            .accessibilityIdentifier(AccessibilityID.quizAnswerField)
+            .accessibilityHint("Type the song title, or artist and title")
+            .onGeometryChange(for: CGFloat.self, of: { $0.size.height }) { height in
+                fieldHeight = height
+            }
+            .overlay(alignment: .top) {
+                if !viewModel.suggestions.isEmpty {
+                    suggestionList
+                        .offset(y: fieldHeight + AppTheme.Spacing.sm)
+                        .transition(.opacity)
+                        .animation(.easeOut(duration: 0.15), value: viewModel.suggestions.isEmpty)
+                }
+            }
+            .zIndex(1)
     }
 
     private var suggestionList: some View {
@@ -234,6 +250,7 @@ struct QuizView: View {
             }
         }
         .panel(cornerRadius: AppTheme.smallCornerRadius)
+        .shadow(color: .black.opacity(0.45), radius: 16, y: 8)
     }
 
     // MARK: - Actions

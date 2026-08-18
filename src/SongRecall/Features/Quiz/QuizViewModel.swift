@@ -20,12 +20,18 @@ final class QuizViewModel: ObservableObject {
     @Published private(set) var remainingSeconds: Int
     @Published private(set) var feedback: Feedback = .none
     @Published private(set) var artworkImage: UIImage?
+    @Published private(set) var suggestions: [TrackSuggestion] = []
     @Published var guess = ""
+
+    /// Debounce between the last keystroke and suggestion refresh.
+    static let suggestionDebounce: Duration = .milliseconds(400)
 
     private let engine: QuizEngine
     private let audioPlayer: AudioPlaying
     private let mediaLibrary: MediaLibraryProviding
+    private let suggestionIndex: [TrackSuggestionRanker.IndexEntry]
     private var timerTask: Task<Void, Never>?
+    private var suggestionTask: Task<Void, Never>?
     private var hasStarted = false
     private let onFinish: (QuizResult) -> Void
 
@@ -36,25 +42,17 @@ final class QuizViewModel: ObservableObject {
     }
     var roundIsActive: Bool { feedback == .none }
 
-    /// Autocomplete suggestions for the current guess, ranked over the
-    /// quiz's session tracks with the active round preferred.
-    var suggestions: [TrackSuggestion] {
-        TrackSuggestionRanker.rank(
-            query: guess,
-            tracks: sessionTracks,
-            preferredTrackID: engine.currentRound?.track.id
-        )
-    }
-
     init(
         engine: QuizEngine,
         audioPlayer: AudioPlaying,
         mediaLibrary: MediaLibraryProviding,
+        catalog: [Track],
         onFinish: @escaping (QuizResult) -> Void
     ) {
         self.engine = engine
         self.audioPlayer = audioPlayer
         self.mediaLibrary = mediaLibrary
+        self.suggestionIndex = TrackSuggestionRanker.makeIndex(from: catalog)
         self.totalRounds = engine.session.rounds.count
         self.remainingSeconds = Int(engine.configuration.roundDuration)
         self.onFinish = onFinish
@@ -83,6 +81,22 @@ final class QuizViewModel: ObservableObject {
         submit()
     }
 
+    /// Debounced search entry point, called whenever the guess changes.
+    /// Suggestions refresh 400ms after the last keystroke, or clear
+    /// immediately when the query is empty.
+    func guessDidChange() {
+        suggestionTask?.cancel()
+        guard !AnswerNormalizer.normalize(guess).isEmpty else {
+            suggestions = []
+            return
+        }
+        suggestionTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: Self.suggestionDebounce)
+            guard !Task.isCancelled else { return }
+            self?.refreshSuggestions()
+        }
+    }
+
     func skip() {
         guard feedback == .none, let outcome = engine.skip() else { return }
         settle(outcome)
@@ -102,8 +116,13 @@ final class QuizViewModel: ObservableObject {
 
     // MARK: - Round lifecycle
 
-    private var sessionTracks: [Track] {
-        engine.session.rounds.map(\.track)
+    private func refreshSuggestions() {
+        guard feedback == .none else { return }
+        suggestions = TrackSuggestionRanker.rank(
+            query: guess,
+            index: suggestionIndex,
+            preferredTrackID: engine.currentRound?.track.id
+        )
     }
 
     private func beginRound() {
@@ -121,6 +140,8 @@ final class QuizViewModel: ObservableObject {
 
     private func settle(_ outcome: RoundOutcome) {
         timerTask?.cancel()
+        suggestionTask?.cancel()
+        suggestions = []
         audioPlayer.stop()
         switch outcome {
         case .correct(let elapsed):

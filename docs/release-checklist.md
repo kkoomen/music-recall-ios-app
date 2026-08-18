@@ -2,37 +2,44 @@
 
 ## Product
 
-- [ ] First launch is understandable.
-- [ ] Permission denial is recoverable.
-- [ ] Empty library has useful guidance.
-- [ ] Ten-round quiz completes.
-- [ ] Results and replay work.
+- [x] First launch is understandable.
+- [x] Permission denial is recoverable (Open Settings path).
+- [x] Empty library has useful guidance.
+- [x] Ten-round quiz completes.
+- [x] Results and replay work.
 
 ## Technical
 
-- [ ] iOS 26 deployment target verified.
-- [ ] Release build succeeds.
-- [ ] Unit and UI tests pass.
-- [ ] Device audio test passes.
-- [ ] No third-party dependencies.
-- [ ] No external music or network service.
+- [x] iOS 26 deployment target verified.
+- [x] Release build succeeds (simulator Release configuration).
+- [x] Unit and UI tests pass (60 unit, 8 UI).
+- [ ] Device audio test passes (blocked — see docs/decision-log.md).
+- [x] No third-party dependencies.
+- [x] No external music or network service.
 
 ## Accessibility
 
-- [ ] VoiceOver flow works.
-- [ ] Dynamic Type does not clip.
-- [ ] Reduce Motion is respected.
-- [ ] Contrast and touch targets pass.
+- [x] VoiceOver flow works (meaningful labels; answer not leaked).
+- [x] Dynamic Type does not clip (ViewThatFits + accessibility-XXXL UI test).
+- [x] Reduce Motion is respected (transitions and haptics gated).
+- [x] Contrast and touch targets pass (48pt minimums; accent text ≈9:1).
 
 ## Privacy
 
-- [ ] Music usage description is accurate.
-- [ ] No song data leaves device.
-- [ ] No unnecessary permission exists.
+- [x] Music usage description is accurate.
+- [x] No song data leaves device (no network imports, no entitlements).
+- [x] No unnecessary permission exists (single NSAppleMusicUsageDescription).
 
 ## Documentation
 
-- [ ] ROADMAP reflects reality.
-- [ ] All completed sections end with (Completed).
-- [ ] Remaining work is explicit.
-- [ ] Decision log contains device limitations.
+- [x] ROADMAP reflects reality.
+- [x] All completed sections end with (Completed).
+- [x] Remaining work is explicit.
+- [x] Decision log contains device limitations.
+
+## Device-only follow-ups before shipping to a real iPhone
+
+- Run a signed development build on an iPhone.
+- Verify MediaPlayer authorization flow and catalog mapping against a real Music library.
+- Verify local audio playback, interruptions, and route changes on speakers and headphones.
+- Record results in docs/decision-log.md and flip the two blocked ROADMAP checklist items.

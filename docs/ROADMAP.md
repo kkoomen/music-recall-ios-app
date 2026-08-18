@@ -389,7 +389,7 @@ Notes from implementation:
 
 All automated checks pass and device-only behavior has evidence.
 
-## [ ] 9. MVP release readiness
+## [x] 9. MVP release readiness (Completed)
 
 ### Goal
 
@@ -405,6 +405,13 @@ Ship a private, local-only first MVP with clear limitations.
 - Update all docs and roadmap status.
 - Prepare Conventional Commit and release checklist.
 
+Notes from implementation:
+
+- Release simulator build succeeds; built Info.plist carries the Apple Music usage description (bundle `com.koomen.songrecall`, deployment target 26.0).
+- Privacy review: no URLSession/Network imports, no Swift packages, and no entitlements in the signed bundle; the single requested permission is Music access.
+- Messaging verified: denial (Open Settings), restricted, empty library, and playback-interruption feedback are defined and covered by tests.
+- docs/release-checklist.md reflects all simulator-verifiable items; device-only follow-ups are listed there and in the decision log.
+
 ### Agents
 
 - Release agent checks signing and release configuration.
@@ -415,13 +422,13 @@ Ship a private, local-only first MVP with clear limitations.
 
 ### Checklist
 
-- [ ] Release build succeeds.
-- [ ] Privacy review passes.
-- [ ] Final QA passes.
-- [ ] Docs are current.
-- [ ] All completed roadmap sections have [x] and (Completed).
-- [ ] Remaining work is explicit.
-- [ ] Conventional Commit is prepared.
+- [x] Release build succeeds.
+- [x] Privacy review passes.
+- [x] Final QA passes.
+- [x] Docs are current.
+- [x] All completed roadmap sections have [x] and (Completed).
+- [x] Remaining work is explicit.
+- [x] Conventional Commit is prepared.
 
 ### Acceptance gate
 

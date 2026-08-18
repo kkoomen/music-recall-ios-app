@@ -22,6 +22,14 @@ Decision: Ten random rounds, thirty seconds each, free-text answer, linear score
 
 Reason: Minimal first loop with clear speed incentive.
 
+## 2026-08-18: MVP release readiness verified on simulator
+
+Decision: Release configuration, privacy, and messaging gates verified on the simulator; device-only checks stay blocked.
+
+Evidence: Release simulator build succeeds; built Info.plist contains the Apple Music usage description; no network imports (URLSession/Network), no Swift packages, and no entitlements in the signed app; permission-denied, restricted, empty, and playback-failure states have defined UI (covered by unit and UI tests).
+
+Consequence: docs/release-checklist.md marks all simulator-verifiable items complete. Before shipping to a real iPhone, run the device-only follow-ups listed there.
+
 ## Update rule
 
 Add dated entries when a decision changes. Link the affected ROADMAP section. Do not silently rewrite history.

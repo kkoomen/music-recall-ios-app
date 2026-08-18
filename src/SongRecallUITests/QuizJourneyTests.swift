@@ -84,7 +84,19 @@ final class QuizJourneyTests: XCTestCase {
         XCTAssertTrue(field.waitForExistence(timeout: 5))
         field.tap()
         field.typeText(text)
-        app.buttons[AccessibilityID.quizSubmit].tap()
+        // Wait until the guess registers so Submit is enabled before tapping.
+        let submit = app.buttons[AccessibilityID.quizSubmit]
+        waitUntil(submit.isEnabled, timeout: 5)
+        submit.tap()
+    }
+
+    private func waitUntil(_ condition: @autoclosure () -> Bool, timeout: TimeInterval = 5) {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if condition() { return }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        }
+        XCTFail("Condition not met within \(timeout)s")
     }
 
     private func assertFeedback(contains text: String) {

@@ -7,8 +7,8 @@ final class QuizViewModel: ObservableObject {
     enum Feedback: Equatable {
         case none
         case correct(points: Int, isFast: Bool)
-        case wrong
-        case skipped
+        case wrong(points: Int)
+        case skipped(points: Int)
         case timedOut
         case interrupted
     }
@@ -160,10 +160,12 @@ final class QuizViewModel: ObservableObject {
             feedback = .correct(points: breakdown.points, isFast: breakdown.isFast)
             Haptics.success()
         case .wrong:
-            feedback = .wrong
+            score = max(0, score - ScoreCalculator.wrongPenalty)
+            feedback = .wrong(points: -ScoreCalculator.wrongPenalty)
             Haptics.error()
         case .skipped:
-            feedback = .skipped
+            score = max(0, score - ScoreCalculator.skipPenalty)
+            feedback = .skipped(points: -ScoreCalculator.skipPenalty)
             Haptics.lightImpact()
         case .timedOut:
             feedback = .timedOut

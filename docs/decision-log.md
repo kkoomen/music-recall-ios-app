@@ -30,6 +30,14 @@ Evidence: Release simulator build succeeds; built Info.plist contains the Apple 
 
 Consequence: docs/release-checklist.md marks all simulator-verifiable items complete. Before shipping to a real iPhone, run the device-only follow-ups listed there.
 
+## 2026-08-18: Scoring formula updated
+
+Decision: Replaced the linear max(100, 1000 - floor(elapsed) x 30) formula with (10 + remaining seconds) x multiplier, plus penalties for wrong answers and skips.
+
+Reason: User redesign; large point values felt arbitrary and the penalty was opaque.
+
+Consequence: Correct answers earn 10 base points plus one point per remaining second (displayed countdown), doubled when answered within the first 5 seconds (with a "You're fast! 2x multiplier" celebration). Wrong answers deduct 5, skips deduct 10, timeout and interruption score 0, and the running and total scores clamp at 0. docs/quiz-rules.md and ROADMAP section 5 reflect the new formula.
+
 ## Update rule
 
 Add dated entries when a decision changes. Link the affected ROADMAP section. Do not silently rewrite history.

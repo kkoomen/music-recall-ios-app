@@ -234,6 +234,7 @@ struct QuizView: View {
         .padding(AppTheme.Spacing.lg)
         .frame(maxWidth: .infinity)
         .panel(cornerRadius: AppTheme.cardCornerRadius)
+        .accessibilityElement(children: .combine)
         .accessibilityIdentifier(AccessibilityID.quizFeedback)
         .accessibilityLabel("You're fast! 2x multiplier, plus \\(points) points")
         .transition(reduceMotion ? .opacity : .scale.combined(with: .opacity))
@@ -250,6 +251,7 @@ struct QuizView: View {
         .padding(.vertical, AppTheme.Spacing.md)
         .frame(maxWidth: .infinity)
         .panel(cornerRadius: AppTheme.smallCornerRadius)
+        .accessibilityElement(children: .combine)
         .accessibilityIdentifier(AccessibilityID.quizFeedback)
         .accessibilityLabel("Correct, plus \\(points) points")
         .transition(reduceMotion ? .opacity : .scale.combined(with: .opacity))
@@ -267,6 +269,7 @@ struct QuizView: View {
         .padding(.vertical, AppTheme.Spacing.md)
         .frame(maxWidth: .infinity)
         .panel(cornerRadius: AppTheme.smallCornerRadius)
+        .accessibilityElement(children: .combine)
         .accessibilityIdentifier(AccessibilityID.quizFeedback)
         .accessibilityLabel(feedbackText)
         .transition(reduceMotion ? .opacity : .scale.combined(with: .opacity))
@@ -275,8 +278,8 @@ struct QuizView: View {
     private var feedbackText: String {
         switch viewModel.feedback {
         case .none, .correct: return ""
-        case .wrong: return "Not this time"
-        case .skipped: return "Skipped"
+        case .wrong(let points): return "Not this time (\(points))"
+        case .skipped(let points): return "Skipped (\(points))"
         case .timedOut: return "Time's up"
         case .interrupted: return "Playback was interrupted"
         }

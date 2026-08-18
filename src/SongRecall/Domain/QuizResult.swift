@@ -18,10 +18,11 @@ struct QuizResult: Equatable, Sendable {
         rounds.compactMap(\.elapsedForScoring).min()
     }
 
-    /// Sum of per-round scores from the weighted score calculator.
+    /// Sum of per-round scores, clamped so the total never goes below 0.
     var totalScore: Int {
-        rounds.compactMap(\.outcome).reduce(0) {
+        let sum = rounds.compactMap(\.outcome).reduce(0) {
             $0 + ScoreCalculator.score(for: $1, roundDuration: roundDuration)
         }
+        return max(0, sum)
     }
 }

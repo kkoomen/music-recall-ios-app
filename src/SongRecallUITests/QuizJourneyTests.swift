@@ -102,7 +102,9 @@ final class QuizJourneyTests: XCTestCase {
     }
 
     private func assertFeedback(contains text: String) {
-        let feedback = app.staticTexts[AccessibilityID.quizFeedback]
+        let feedback = app.descendants(matching: .any)
+            .matching(identifier: AccessibilityID.quizFeedback)
+            .firstMatch
         XCTAssertTrue(feedback.waitForExistence(timeout: 5))
         XCTAssertTrue(feedback.label.contains(text), "Expected feedback containing \(text), got \(feedback.label)")
     }

@@ -65,9 +65,9 @@ final class ScoreCalculatorTests: XCTestCase {
         XCTAssertTrue(breakdown.isFast)
     }
 
-    func testZeroPointsForNonCorrectOutcomes() {
-        XCTAssertEqual(ScoreCalculator.score(for: .wrong), 0)
-        XCTAssertEqual(ScoreCalculator.score(for: .skipped), 0)
+    func testPenaltiesForNonCorrectOutcomes() {
+        XCTAssertEqual(ScoreCalculator.score(for: .wrong), -5)
+        XCTAssertEqual(ScoreCalculator.score(for: .skipped), -10)
         XCTAssertEqual(ScoreCalculator.score(for: .timedOut), 0)
         XCTAssertEqual(ScoreCalculator.score(for: .interrupted), 0)
     }
@@ -143,15 +143,59 @@ final class ScoreCalculatorTests: XCTestCase {
         _ = session.begin(now: 0)
         _ = session.submitAnswer("T1", now: 0)   // fast: 80
         _ = session.advance(now: 1)
-        _ = session.submitAnswer("T2", now: 16)  // 14 remaining: 24
+        _ = session.submitAnswer("T2", now: 16)  // elapsed 15 -> 15 remaining: 25
         _ = session.advance(now: 20)
-        _ = session.skip()                        // 0
+        _ = session.skip()                        // -10
         let state = session.advance(now: 25)
 
         guard case .finished(let result) = state else {
             return XCTFail("Expected finished")
         }
-        XCTAssertEqual(result.totalScore, 104)
+        XCTAssertEqual(result.totalScore, 95) // 80 + 25 - 10
         XCTAssertEqual(result.roundDuration, 30)
+    }
+
+    func testTotalScoreCannotGoBelowZero() {
+        let url = URL(string: "ipod-library://item/item.mp3?id=1")!
+        func track(_ id: UInt64) -> Track {
+            Track(id: id, title: "T\(id)", artist: "A", album: "B", assetURL: url)
+        }
+        var session = QuizSession(
+            configuration: QuizConfiguration(roundCount: 3, roundDuration: 30),
+            rounds: [track(1), track(2), track(3)].map { QuizRound(track: $0) }
+        )
+        _ = session.begin(now: 0)
+        _ = session.skip()
+        _ = session.advance(now: 1)
+        _ = session.skip()
+        _ = session.advance(now: 2)
+        _ = session.skip()
+        let state = session.advance(now: 3)
+
+        guard case .finished(let result) = state else {
+            return XCTFail("Expected finished")
+        }
+        XCTAssertEqual(result.totalScore, 0) // -30 clamps to 0
+    }
+
+    func testMixedScoreClampsAtZero() {
+        let url = URL(string: "ipod-library://item/item.mp3?id=1")!
+        func track(_ id: UInt64) -> Track {
+            Track(id: id, title: "T\(id)", artist: "A", album: "B", assetURL: url)
+        }
+        var session = QuizSession(
+            configuration: QuizConfiguration(roundCount: 2, roundDuration: 30),
+            rounds: [track(1), track(2)].map { QuizRound(track: $0) }
+        )
+        _ = session.begin(now: 0)
+        _ = session.submitAnswer("T1", now: 25)  // 15 points
+        _ = session.advance(now: 26)
+        _ = session.skip()                        // -10
+        let state = session.advance(now: 27)
+
+        guard case .finished(let result) = state else {
+            return XCTFail("Expected finished")
+        }
+        XCTAssertEqual(result.totalScore, 5) // 15 - 10 = 5, above the floor
     }
 }

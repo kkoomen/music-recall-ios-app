@@ -27,11 +27,14 @@ final class AutocompleteUITests: XCTestCase {
         // The row shows title (larger, white) and artist (smaller, grey).
         let suggestion = app.buttons.matching(identifier: "quiz.suggestion").firstMatch
         XCTAssertTrue(suggestion.waitForExistence(timeout: 5))
-        XCTAssertEqual(suggestion.label, "Gamma Song, Artist Three")
+        // Wait for the row to be fully rendered before tapping.
+        waitUntil(suggestion.isHittable && suggestion.label == "Gamma Song, Artist Three", timeout: 5)
 
         suggestion.tap()
 
-        let feedback = app.staticTexts["quiz.feedback"]
+        let feedback = app.descendants(matching: .any)
+            .matching(identifier: "quiz.feedback")
+            .firstMatch
         XCTAssertTrue(feedback.waitForExistence(timeout: 5))
         XCTAssertTrue(feedback.label.contains("2x multiplier"), "Got: \(feedback.label)")
     }
@@ -51,5 +54,14 @@ final class AutocompleteUITests: XCTestCase {
         field.typeText("zzz")
 
         XCTAssertFalse(app.buttons.matching(identifier: "quiz.suggestion").firstMatch.exists)
+    }
+
+    private func waitUntil(_ condition: @autoclosure () -> Bool, timeout: TimeInterval = 5) {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if condition() { return }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        }
+        XCTFail("Condition not met within \(timeout)s")
     }
 }

@@ -112,7 +112,21 @@ final class QuizViewModelSuggestionTests: XCTestCase {
         vm.guess = "Not A Real Title"
         vm.submitFromKeyboard()
 
-        XCTAssertEqual(vm.feedback, .wrong)
+        XCTAssertEqual(vm.feedback, .wrong(points: -5))
+    }
+
+    func testRunningScoreNeverGoesBelowZero() {
+        let vm = makeViewModel(catalog: StubMediaLibrary.tracks)
+        vm.start()
+        XCTAssertEqual(vm.score, 0)
+
+        vm.skip() // -10, clamps to 0
+        XCTAssertEqual(vm.score, 0)
+        vm.advance()
+
+        vm.guess = "wrong guess"
+        vm.submitFromKeyboard() // -5, clamps to 0
+        XCTAssertEqual(vm.score, 0)
     }
 
     func testSettlingARoundClearsSuggestions() async throws {

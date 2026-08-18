@@ -51,9 +51,17 @@ When a round ends without a correct guess (wrong answer, skip, timeout, or playb
 
 For a correct answer submitted before timeout:
 
-max(100, 1000 - floor(elapsed seconds × 30))
+(10 + remaining seconds) × multiplier, where remaining seconds match the displayed countdown.
 
-Immediate answer earns 1,000. Answer at thirty seconds earns 100. Wrong answer, skip, reveal, or timeout earns 0. Score freezes at the first terminal event.
+- Immediate answer earns 40 points (10 + 30 remaining) doubled to 80.
+- Answering within the first 5 seconds applies a 2x multiplier (shown as "You're fast!" with a highlighted 2x badge).
+- Answer at thirty seconds earns 10 points (no remaining time).
+- Wrong answer: −5 points.
+- Skip: −10 points.
+- Timeout or playback interruption: 0 points.
+- The running score never goes below 0.
+
+Score freezes at the first terminal event.
 
 ## Edge cases
 

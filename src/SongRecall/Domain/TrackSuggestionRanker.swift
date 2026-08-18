@@ -9,12 +9,13 @@ struct TrackSuggestion: Equatable, Sendable {
 ///
 /// Scores normalized text matches against title, artist, and the
 /// artist-title form. Returns at most `limit` results, most relevant
-/// first. Ties break alphabetically by title; the current round's track
-/// receives a small boost when it matches.
+/// first. Songs with equal relevance — for example every song by one
+/// artist — are shuffled randomly via the injected random source, so
+/// the active round's track is never favored. No alphabetical fallback.
 ///
 /// For large catalogs, precompute an index once with `makeIndex(from:)`
-/// and use the index-based `rank(query:index:...)` overload so metadata
-/// normalization never repeats per keystroke.
+/// and use the index-based `rank(query:index:random:...)` overload so
+/// metadata normalization never repeats per keystroke.
 enum TrackSuggestionRanker {
     /// Pre-normalized search entry for one track.
     struct IndexEntry: Sendable {
@@ -39,40 +40,37 @@ enum TrackSuggestionRanker {
     static func rank(
         query: String,
         tracks: [Track],
-        preferredTrackID: Track.ID? = nil,
+        random: RandomSource,
         limit: Int = 5
     ) -> [TrackSuggestion] {
-        rank(query: query, index: makeIndex(from: tracks), preferredTrackID: preferredTrackID, limit: limit)
+        rank(query: query, index: makeIndex(from: tracks), random: random, limit: limit)
     }
 
     static func rank(
         query: String,
         index: [IndexEntry],
-        preferredTrackID: Track.ID? = nil,
+        random: RandomSource,
         limit: Int = 5
     ) -> [TrackSuggestion] {
         let normalized = AnswerNormalizer.normalize(query)
         guard !normalized.isEmpty, limit > 0 else { return [] }
 
-        let scored: [(track: Track, score: Int)] = index.compactMap { entry in
-            var score = score(query: normalized, entry: entry)
-            guard score > 0 else { return nil }
-            if entry.track.id == preferredTrackID {
-                score += 5
-            }
-            return (entry.track, score)
+        let scored = index.compactMap { entry -> (track: Track, score: Int)? in
+            let score = score(query: normalized, entry: entry)
+            return score > 0 ? (entry.track, score) : nil
         }
 
-        return scored
-            .sorted { lhs, rhs in
-                if lhs.score != rhs.score {
-                    return lhs.score > rhs.score
-                }
-                return lhs.track.title.localizedCaseInsensitiveCompare(rhs.track.title)
-                    == .orderedAscending
+        // Group by score and shuffle inside each group, so ties (e.g.
+        // every song by one artist) are listed at random.
+        let grouped = Dictionary(grouping: scored, by: \.score)
+        let scores = grouped.keys.sorted(by: >)
+
+        return scores
+            .flatMap { score in
+                random.shuffled(grouped[score] ?? []).map(\.track)
             }
             .prefix(limit)
-            .map { TrackSuggestion(track: $0.track) }
+            .map { TrackSuggestion(track: $0) }
     }
 
     /// Higher is better. Zero means no match.

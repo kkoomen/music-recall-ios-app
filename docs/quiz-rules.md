@@ -31,7 +31,7 @@ While typing, the answer field searches the full local library catalog (not just
 - the active round's track wins ties;
 - remaining ties break alphabetically by title.
 
-Search is debounced 400ms after the last keystroke; clearing the input keeps the dropdown open so return can still pick the first suggestion. The quiz screen places the input field at the top and the action buttons at the bottom; the space in between is reserved for the autocomplete dropdown, which expands below the input while typing without shifting the layout. Each row shows the title in white larger text and the artist in grey smaller text.
+Search is debounced 400ms after the last keystroke; clearing the input keeps the dropdown open so return can still pick the first suggestion. Songs with equal relevance — for example every song by one artist — are listed in random order (the active round's song is never favored and there is no alphabetical fallback). The quiz screen places the input field at the top and the action buttons at the bottom; the space in between is reserved for the autocomplete dropdown, which expands below the input while typing without shifting the layout. Each row shows the title in white larger text and the artist in grey smaller text.
 
 Return-key behavior:
 

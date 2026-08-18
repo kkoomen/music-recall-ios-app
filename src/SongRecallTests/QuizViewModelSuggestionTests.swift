@@ -21,6 +21,7 @@ final class QuizViewModelSuggestionTests: XCTestCase {
             engine: engine,
             audioPlayer: StubAudioPlayer(),
             catalog: catalog,
+            random: SeededRandomSource(seed: 0),
             onFinish: { _ in }
         )
     }
@@ -53,6 +54,7 @@ final class QuizViewModelSuggestionTests: XCTestCase {
             engine: engine,
             audioPlayer: StubAudioPlayer(),
             catalog: catalog,
+            random: SeededRandomSource(seed: 0),
             onFinish: { _ in }
         )
         vm.start()

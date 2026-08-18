@@ -26,6 +26,7 @@ final class QuizViewModel: ObservableObject {
 
     private let engine: QuizEngine
     private let audioPlayer: AudioPlaying
+    private let random: RandomSource
     private let suggestionIndex: [TrackSuggestionRanker.IndexEntry]
     private var timerTask: Task<Void, Never>?
     private var suggestionTask: Task<Void, Never>?
@@ -43,10 +44,12 @@ final class QuizViewModel: ObservableObject {
         engine: QuizEngine,
         audioPlayer: AudioPlaying,
         catalog: [Track],
+        random: RandomSource,
         onFinish: @escaping (QuizResult) -> Void
     ) {
         self.engine = engine
         self.audioPlayer = audioPlayer
+        self.random = random
         self.suggestionIndex = TrackSuggestionRanker.makeIndex(from: catalog)
         self.totalRounds = engine.session.rounds.count
         self.remainingSeconds = Int(engine.configuration.roundDuration)
@@ -129,7 +132,7 @@ final class QuizViewModel: ObservableObject {
         suggestions = TrackSuggestionRanker.rank(
             query: guess,
             index: suggestionIndex,
-            preferredTrackID: engine.currentRound?.track.id
+            random: random
         )
     }
 

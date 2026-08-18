@@ -206,8 +206,34 @@ struct QuizView: View {
                     .accessibilityHint("Type the song title, or artist and title")
                     .disabled(!viewModel.roundIsActive)
                     .transition(.opacity)
+
+                if !viewModel.suggestions.isEmpty {
+                    suggestionList
+                        .transition(.opacity)
+                }
             }
         }
+    }
+
+    private var suggestionList: some View {
+        VStack(spacing: 0) {
+            ForEach(viewModel.suggestions, id: \.track.id) { suggestion in
+                Button {
+                    viewModel.select(suggestion)
+                } label: {
+                    SuggestionRow(suggestion: suggestion)
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier(AccessibilityID.quizSuggestion)
+                .accessibilityLabel("\(suggestion.track.title), \(suggestion.track.artist)")
+
+                if suggestion.track.id != viewModel.suggestions.last?.track.id {
+                    Divider()
+                        .overlay(AppTheme.surfaceBorder)
+                }
+            }
+        }
+        .panel(cornerRadius: AppTheme.smallCornerRadius)
     }
 
     // MARK: - Actions

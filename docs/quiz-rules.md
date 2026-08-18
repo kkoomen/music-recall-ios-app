@@ -23,6 +23,16 @@ Normalize case, whitespace, punctuation, and diacritics. Accept an exact normali
 
 Wrong answer ends the round. Skip, reveal, and timeout end the round with zero points.
 
+## Answer input autocomplete
+
+While typing, the answer field shows up to five suggestions ranked from the current session's tracks by normalized match relevance:
+
+- exact title match, then title prefix, artist prefix, artist-title prefix, then substring matches;
+- the active round's track wins ties;
+- remaining ties break alphabetically by title.
+
+Each row renders the title in white larger text and the artist in grey smaller text. Tapping a row fills the field with that track's title and submits it as the player's answer (one attempt, as usual).
+
 ## Scoring
 
 For a correct answer submitted before timeout:

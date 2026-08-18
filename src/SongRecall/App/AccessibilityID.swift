@@ -14,6 +14,7 @@ enum AccessibilityID {
     static let quizScore = "quiz.score"
     static let quizArtwork = "quiz.artwork"
     static let quizAnswerField = "quiz.answerField"
+    static let quizSuggestion = "quiz.suggestion"
     static let quizSubmit = "quiz.submit"
     static let quizSkip = "quiz.skip"
     static let quizNext = "quiz.next"

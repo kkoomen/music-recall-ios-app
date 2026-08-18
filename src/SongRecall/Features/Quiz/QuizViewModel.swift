@@ -36,6 +36,16 @@ final class QuizViewModel: ObservableObject {
     }
     var roundIsActive: Bool { feedback == .none }
 
+    /// Autocomplete suggestions for the current guess, ranked over the
+    /// quiz's session tracks with the active round preferred.
+    var suggestions: [TrackSuggestion] {
+        TrackSuggestionRanker.rank(
+            query: guess,
+            tracks: sessionTracks,
+            preferredTrackID: engine.currentRound?.track.id
+        )
+    }
+
     init(
         engine: QuizEngine,
         audioPlayer: AudioPlaying,
@@ -65,6 +75,14 @@ final class QuizViewModel: ObservableObject {
         settle(outcome)
     }
 
+    /// Fills the answer field with the suggestion's title and submits it
+    /// as the player's answer.
+    func select(_ suggestion: TrackSuggestion) {
+        guard feedback == .none else { return }
+        guess = suggestion.track.title
+        submit()
+    }
+
     func skip() {
         guard feedback == .none, let outcome = engine.skip() else { return }
         settle(outcome)
@@ -83,6 +101,10 @@ final class QuizViewModel: ObservableObject {
     }
 
     // MARK: - Round lifecycle
+
+    private var sessionTracks: [Track] {
+        engine.session.rounds.map(\.track)
+    }
 
     private func beginRound() {
         guard let round = engine.currentRound else { return }

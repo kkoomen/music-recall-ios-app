@@ -436,6 +436,8 @@ First working MVP runs on an iPhone with local Music-library songs and satisfies
 
 ## Future work after MVP
 
+Note: answer-field autocomplete (ranked by title/artist relevance, tap-to-submit) was added after the MVP; see docs/quiz-rules.md.
+
 - Files-app MP3 importer.
 - Persistent history and personal statistics.
 - Configurable round count and timer.

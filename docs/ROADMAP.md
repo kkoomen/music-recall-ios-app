@@ -77,7 +77,7 @@ Create a buildable iOS 26+ SwiftUI application shell mapped to src/ and tests/.
 
 Clean checkout opens and builds with xcodebuild. No app behavior beyond a placeholder root view is required.
 
-## [ ] 2. Media library authorization and local track catalog
+## [x] 2. Media library authorization and local track catalog (Completed)
 
 ### Goal
 
@@ -94,6 +94,12 @@ Read playable, locally available songs from the user's Music library without net
 - Provide Settings guidance after denial.
 - Make catalog service injectable for tests.
 
+Notes from implementation:
+
+- Artwork is mapped lazily via `MediaLibraryService.artworkData(for:)` rather than stored inside `Track`, so the catalog stays lightweight for large libraries.
+- The framework boundary is `MediaItemRecord`; all filtering lives in the pure `TrackMapper` and is unit-tested without MediaPlayer.
+- Settings guidance after denial is rendered by the Permission feature in roadmap section 6.
+
 ### Agents
 
 - Media-library agent owns MediaPlayer behavior and device validation.
@@ -103,11 +109,11 @@ Read playable, locally available songs from the user's Music library without net
 
 ### Checklist
 
-- [ ] Authorization flow exists.
-- [ ] Local playable songs map to Track.
-- [ ] Unplayable songs are excluded.
-- [ ] Empty and denied states have defined UI.
-- [ ] Unit tests cover mapping.
+- [x] Authorization flow exists.
+- [x] Local playable songs map to Track.
+- [x] Unplayable songs are excluded.
+- [x] Empty and denied states have defined UI.
+- [x] Unit tests cover mapping.
 - [ ] Physical-device media-library test is recorded.
 
 ### Acceptance gate

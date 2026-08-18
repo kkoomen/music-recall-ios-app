@@ -25,3 +25,11 @@ Reason: Minimal first loop with clear speed incentive.
 ## Update rule
 
 Add dated entries when a decision changes. Link the affected ROADMAP section. Do not silently rewrite history.
+
+## 2026-08-18: Device-only checks blocked
+
+Decision: Physical-device media-library and audio checks cannot run in this environment (no signed iPhone build executed).
+
+Reason: Simulator cannot represent a personal Music library and no device build/signing session was run.
+
+Consequence: ROADMAP items that require a real iPhone (media-library authorization flow, local audio playback, interruption handling) stay recorded as blocked until a device session runs. All other gates are verified on the simulator.

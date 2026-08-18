@@ -2,7 +2,7 @@ import XCTest
 @testable import SongRecall
 
 final class ScoreCalculatorTests: XCTestCase {
-    // MARK: - Formula: (10 + remaining seconds) x multiplier, 2x within 5s
+    // MARK: - Formula: (10 + remaining seconds) x multiplier, 2x within 25s
 
     func testImmediateAnswerIsFastAndScoresEighty() {
         let breakdown = ScoreCalculator.breakdown(forCorrectAnswerAt: 0)
@@ -25,22 +25,29 @@ final class ScoreCalculatorTests: XCTestCase {
     }
 
     func testAnswerJustInsideFastWindow() {
-        let breakdown = ScoreCalculator.breakdown(forCorrectAnswerAt: 4.99)
-        XCTAssertEqual(breakdown.points, 72) // 26 remaining, doubled
+        let breakdown = ScoreCalculator.breakdown(forCorrectAnswerAt: 24.99)
+        XCTAssertEqual(breakdown.points, 32) // 6 remaining, doubled
         XCTAssertTrue(breakdown.isFast)
     }
 
-    func testAnswerAtFiveSecondsLosesMultiplier() {
-        let breakdown = ScoreCalculator.breakdown(forCorrectAnswerAt: 5)
-        XCTAssertEqual(breakdown.points, 35) // 25 remaining, no multiplier
+    func testAnswerAtTwentyFiveSecondsStillFast() {
+        // "Within 25 seconds or less" includes exactly 25.
+        let breakdown = ScoreCalculator.breakdown(forCorrectAnswerAt: 25)
+        XCTAssertEqual(breakdown.points, 30) // 5 remaining, doubled
+        XCTAssertTrue(breakdown.isFast)
+    }
+
+    func testAnswerJustOverFastWindowLosesMultiplier() {
+        let breakdown = ScoreCalculator.breakdown(forCorrectAnswerAt: 25.01)
+        XCTAssertEqual(breakdown.points, 15) // 5 remaining, no multiplier
         XCTAssertFalse(breakdown.isFast)
     }
 
     func testMidRoundScores() {
-        XCTAssertEqual(ScoreCalculator.score(forCorrectAnswerAt: 10), 30) // 20 remaining
-        XCTAssertEqual(ScoreCalculator.score(forCorrectAnswerAt: 15), 25) // 15 remaining
-        XCTAssertEqual(ScoreCalculator.score(forCorrectAnswerAt: 20), 20) // 10 remaining
-        XCTAssertEqual(ScoreCalculator.score(forCorrectAnswerAt: 25), 15) //  5 remaining
+        XCTAssertEqual(ScoreCalculator.score(forCorrectAnswerAt: 10), 60) // (10+20)x2
+        XCTAssertEqual(ScoreCalculator.score(forCorrectAnswerAt: 15), 50) // (10+15)x2
+        XCTAssertEqual(ScoreCalculator.score(forCorrectAnswerAt: 20), 40) // (10+10)x2
+        XCTAssertEqual(ScoreCalculator.score(forCorrectAnswerAt: 29), 11) // 1 remaining, no multiplier
     }
 
     func testAnswerNearTheEndOfRound() {
@@ -114,7 +121,7 @@ final class ScoreCalculatorTests: XCTestCase {
         _ = session.submitAnswer("One", now: 5)   // answer wins the race
         XCTAssertNil(session.markTimedOutIfNeeded(now: 31)) // timer arrives late
         XCTAssertEqual(session.currentRound?.outcome, .correct(elapsed: 5))
-        XCTAssertEqual(ScoreCalculator.score(for: session.currentRound!.outcome!), 35)
+        XCTAssertEqual(ScoreCalculator.score(for: session.currentRound!.outcome!), 70)
     }
 
     func testTimeoutArrivingFirstBlocksLaterAnswer() {
@@ -143,7 +150,7 @@ final class ScoreCalculatorTests: XCTestCase {
         _ = session.begin(now: 0)
         _ = session.submitAnswer("T1", now: 0)   // fast: 80
         _ = session.advance(now: 1)
-        _ = session.submitAnswer("T2", now: 16)  // elapsed 15 -> 15 remaining: 25
+        _ = session.submitAnswer("T2", now: 16)  // elapsed 15 -> fast: 50
         _ = session.advance(now: 20)
         _ = session.skip()                        // -10
         let state = session.advance(now: 25)
@@ -151,7 +158,7 @@ final class ScoreCalculatorTests: XCTestCase {
         guard case .finished(let result) = state else {
             return XCTFail("Expected finished")
         }
-        XCTAssertEqual(result.totalScore, 95) // 80 + 25 - 10
+        XCTAssertEqual(result.totalScore, 120) // 80 + 50 - 10
         XCTAssertEqual(result.roundDuration, 30)
     }
 
@@ -188,7 +195,7 @@ final class ScoreCalculatorTests: XCTestCase {
             rounds: [track(1), track(2)].map { QuizRound(track: $0) }
         )
         _ = session.begin(now: 0)
-        _ = session.submitAnswer("T1", now: 25)  // 15 points
+        _ = session.submitAnswer("T1", now: 25)  // fast (25s): (10+5)x2 = 30
         _ = session.advance(now: 26)
         _ = session.skip()                        // -10
         let state = session.advance(now: 27)
@@ -196,6 +203,6 @@ final class ScoreCalculatorTests: XCTestCase {
         guard case .finished(let result) = state else {
             return XCTFail("Expected finished")
         }
-        XCTAssertEqual(result.totalScore, 5) // 15 - 10 = 5, above the floor
+        XCTAssertEqual(result.totalScore, 20) // 30 - 10, above the floor
     }
 }

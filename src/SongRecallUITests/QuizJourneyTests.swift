@@ -28,7 +28,7 @@ final class QuizJourneyTests: XCTestCase {
         // Round 1: correct answer for Gamma Song via return key.
         assertRound(number: 1, of: 3)
         answer("Gamma Song")
-        // Answered within 5 seconds: the fast celebration shows.
+        // Answered within 25 seconds: the fast celebration shows.
         assertFeedback(contains: "2x multiplier")
         // Every round end reveals the song, including correct answers.
         XCTAssertTrue(revealElement.waitForExistence(timeout: 5))

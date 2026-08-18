@@ -38,6 +38,14 @@ Reason: User redesign; large point values felt arbitrary and the penalty was opa
 
 Consequence: Correct answers earn 10 base points plus one point per remaining second (displayed countdown), doubled when answered within the first 5 seconds (with a "You're fast! 2x multiplier" celebration). Wrong answers deduct 5, skips deduct 10, timeout and interruption score 0, and the running and total scores clamp at 0. docs/quiz-rules.md and ROADMAP section 5 reflect the new formula.
 
+## 2026-08-18: Fast-answer multiplier window widened to 25 seconds
+
+Decision: The 2x multiplier now applies to correct answers at or before 25 seconds (previously strictly before 5 seconds).
+
+Reason: User feedback; the 5-second window almost never triggered in practice, so the celebration never appeared.
+
+Consequence: Nearly every correct answer inside the 30-second round now shows the "You're fast! 2x multiplier" celebration; only answers in the final 5 seconds (after 25s) score without the multiplier. Boundary tests and docs updated.
+
 ## Update rule
 
 Add dated entries when a decision changes. Link the affected ROADMAP section. Do not silently rewrite history.

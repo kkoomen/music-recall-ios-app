@@ -6,7 +6,7 @@ ROADMAP.md is execution source of truth. Orchestrator must follow it precisely.
 
 1. Read AGENTS.md, docs/ROADMAP.md, docs/agent-workflow.md, and relevant feature docs.
 2. Find first unfinished ROADMAP section whose dependencies are complete.
-3. Assign only bounded work to the correct Pi agent.
+3. Assign only bounded work to the correct agent by role.
 4. Require implementation notes, changed paths, tests, and unresolved risks.
 5. Ask testing agent to add or run checks.
 6. Ask build agent to build and test.

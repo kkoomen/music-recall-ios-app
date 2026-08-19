@@ -8,7 +8,7 @@ Before any task, read:
 2. docs/ROADMAP.md;
 3. docs/agent-workflow.md;
 4. docs relevant to assigned feature;
-5. the assigned file in .pi/agents/.
+5. the assigned role document (host tool's agent convention).
 
 docs/ROADMAP.md is canonical. ORCHESTRATOR.md and every agent must follow its order, dependencies, checklists, and acceptance gates.
 
@@ -34,8 +34,8 @@ Song Recall is a private iPhone music-memory quiz. It reads locally available so
 - Keep unit tests under src/SongRecallTests/ and UI tests under src/SongRecallUITests/.
 - Keep the Xcode project at src/SongRecall.xcodeproj.
 - Keep written project knowledge under docs/.
-- Keep Pi role instructions under .pi/agents/.
-- Do not put Swift source in docs, .pi/agents, or temporary structure placeholders.
+- Keep role instructions in the host tool's agent convention (pi: `.pi/agents/`; Claude Code: `CLAUDE.md`; Codex: `AGENTS.md`).
+- Do not put Swift source in docs, agent-role files, or temporary structure placeholders.
 - Prefer small, focused files.
 - Keep domain logic independent from MediaPlayer, AVFoundation, and SwiftUI.
 - Inject time, randomness, media access, and playback for tests.
@@ -60,7 +60,7 @@ Documentation agent may edit only:
 - AGENTS.md;
 - ORCHESTRATOR.md;
 - docs/**/*.md;
-- .pi/agents/**/*.md.
+- agent-role files in the host tool's convention.
 
 Documentation agent must never edit Swift, tests, project files, assets, or code comments.
 

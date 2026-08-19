@@ -14,11 +14,11 @@ struct QuizConfiguration: Equatable, Sendable {
     }
 
     /// Seconds of round time within which a correct answer earns the
-    /// 2x multiplier. Easy mode rewards a quick pick with a tighter
-    /// 3-second window (27 or more seconds remaining on the clock);
-    /// hard mode keeps the 5-second window.
+    /// 2x multiplier. Easy and expert modes reward a quick pick with a
+    /// tighter 3-second window (27 or more seconds remaining on the
+    /// clock); hard mode keeps the 5-second window.
     var fastThreshold: TimeInterval {
-        mode == .easy ? 3 : 5
+        mode == .hard ? 5 : 3
     }
 
     static let `default` = QuizConfiguration()

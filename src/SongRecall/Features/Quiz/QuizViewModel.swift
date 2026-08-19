@@ -19,15 +19,24 @@ final class QuizViewModel: ObservableObject {
     @Published private(set) var remainingSeconds: Int
     @Published private(set) var feedback: Feedback = .none
     @Published private(set) var suggestions: [TrackSuggestion] = []
-    /// Easy mode: the five multiple-choice options for the active round.
+    /// Easy and expert modes: the five multiple-choice options for the
+    /// active round.
     @Published private(set) var options: [Track] = []
-    /// Easy mode: the option the player picked, kept for highlighting
-    /// after the round settles.
+    /// Easy and expert modes: the option the player picked, kept for
+    /// highlighting after the round settles.
     @Published private(set) var selectedOptionID: UInt64?
+    /// Expert mode: sample plays remaining this round (3 max), reset
+    /// every round.
+    @Published private(set) var sampleAttemptsRemaining = 0
+    /// Expert mode: true while the 1-second sample is playing.
+    @Published private(set) var isSamplePlaying = false
     @Published var guess = ""
 
     /// Debounce between the last keystroke and suggestion refresh.
     static let suggestionDebounce: Duration = .milliseconds(400)
+    /// Expert mode: how often the 1-second sample may be replayed per
+    /// round.
+    static let maxSampleAttempts = 3
 
     private let engine: QuizEngine
     private let audioPlayer: AudioPlaying
@@ -36,16 +45,25 @@ final class QuizViewModel: ObservableObject {
     private let suggestionIndex: [TrackSuggestionRanker.IndexEntry]
     private var timerTask: Task<Void, Never>?
     private var suggestionTask: Task<Void, Never>?
+    private var sampleTask: Task<Void, Never>?
+    private var sampleOffset: TimeInterval?
     private var hasStarted = false
     private let onFinish: (QuizResult) -> Void
 
     var currentTrack: Track? { engine.currentRound?.track }
-    /// Easy mode: the track identity that counts as correct this round.
+    /// Multiple-choice modes: the track identity that counts as correct
+    /// this round.
     var correctOptionID: UInt64? { engine.currentRound?.track.id }
     var isEasyMode: Bool { engine.configuration.mode == .easy }
+    var isExpertMode: Bool { engine.configuration.mode == .expert }
+    /// Easy and expert share the multiple-choice mechanics.
+    var isMultipleChoiceMode: Bool { engine.configuration.mode != .hard }
+    var canPlaySample: Bool {
+        isExpertMode && roundIsActive && sampleAttemptsRemaining > 0 && !isSamplePlaying
+    }
     var canSubmit: Bool {
         feedback == .none
-            && !isEasyMode
+            && !isMultipleChoiceMode
             && !guess.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     var roundIsActive: Bool { feedback == .none }
@@ -78,25 +96,76 @@ final class QuizViewModel: ObservableObject {
     }
 
     func submit() {
-        guard !isEasyMode, feedback == .none, let outcome = engine.submitAnswer(guess) else { return }
+        guard !isMultipleChoiceMode, feedback == .none, let outcome = engine.submitAnswer(guess) else { return }
         settle(outcome)
     }
 
     /// Fills the answer field with the suggestion's title and submits it
     /// as the player's answer.
     func select(_ suggestion: TrackSuggestion) {
-        guard !isEasyMode, feedback == .none else { return }
+        guard !isMultipleChoiceMode, feedback == .none else { return }
         guess = suggestion.track.title
         submit()
     }
 
-    /// Easy mode: picks one of the five options. The round settles
-    /// immediately; identity (not title text) decides the outcome.
+    /// Multiple-choice modes: picks one of the options. The round
+    /// settles immediately; identity (not title text) decides the
+    /// outcome.
     func selectOption(_ track: Track) {
-        guard isEasyMode, feedback == .none else { return }
+        guard isMultipleChoiceMode, feedback == .none else { return }
         selectedOptionID = track.id
         guard let outcome = engine.submitOption(trackID: track.id) else { return }
         settle(outcome)
+    }
+
+    /// Sample mode: plays the round's 1-second sample from its random
+    /// part. The same part is replayed on every press; at most
+    /// `maxSampleAttempts` manual presses per round, then the button
+    /// locks.
+    func playSample() {
+        guard canPlaySample, let track = engine.currentRound?.track else { return }
+        sampleAttemptsRemaining -= 1
+        playSampleInternal(track: track)
+    }
+
+    /// Sample mode: plays the round's first sample automatically at
+    /// round start, without consuming a manual play — the player still
+    /// has all `maxSampleAttempts` presses.
+    private func playSampleAutomatically() {
+        guard isExpertMode, feedback == .none, let track = engine.currentRound?.track else { return }
+        isSamplePlaying = true
+        playSampleInternal(track: track)
+    }
+
+    /// Loads the duration on the first play of the round, picks the
+    /// random offset once, plays the 1-second sample from it, and stops
+    /// it one second later. Failures settle the round as interrupted.
+    private func playSampleInternal(track: Track) {
+        isSamplePlaying = true
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            do {
+                if self.sampleOffset == nil {
+                    let duration = try await self.audioPlayer.loadDuration(of: track.assetURL)
+                    self.sampleOffset = SamplePicker.offset(
+                        songDuration: duration,
+                        random: self.random
+                    )
+                }
+                try await self.audioPlayer.playSample(
+                    assetURL: track.assetURL,
+                    at: self.sampleOffset ?? 0
+                )
+                // The round may have settled while the sample was loading.
+                guard self.feedback == .none else { return }
+                self.startSampleStopTimer()
+            } catch {
+                guard self.feedback == .none else { return }
+                self.isSamplePlaying = false
+                _ = self.engine.interrupt()
+                self.settle(.interrupted)
+            }
+        }
     }
 
     /// Debounced search entry point, called whenever the guess changes.
@@ -164,19 +233,32 @@ final class QuizViewModel: ObservableObject {
         feedback = .none
         guess = ""
         selectedOptionID = nil
-        if isEasyMode {
+        sampleOffset = nil
+        sampleTask?.cancel()
+        isSamplePlaying = false
+        sampleAttemptsRemaining = isExpertMode ? Self.maxSampleAttempts : 0
+        if isMultipleChoiceMode {
             options = OptionGenerator.options(for: round.track, from: catalog, random: random)
         } else {
             options = []
         }
         remainingSeconds = Int(engine.configuration.roundDuration)
-        prepareAndPlay(assetURL: round.track.assetURL)
+        if isExpertMode {
+            // Sample mode: the first 1-second sample plays automatically
+            // (free of charge) and the button replays the same part.
+            playSampleAutomatically()
+        } else {
+            prepareAndPlay(assetURL: round.track.assetURL)
+        }
         startTimer()
     }
 
     private func settle(_ outcome: RoundOutcome) {
         timerTask?.cancel()
         suggestionTask?.cancel()
+        sampleTask?.cancel()
+        sampleOffset = nil
+        isSamplePlaying = false
         suggestions = []
         audioPlayer.stop()
         switch outcome {
@@ -208,6 +290,7 @@ final class QuizViewModel: ObservableObject {
 
     private func finish(_ result: QuizResult) {
         timerTask?.cancel()
+        sampleTask?.cancel()
         audioPlayer.stop()
         onFinish(result)
     }
@@ -243,6 +326,18 @@ final class QuizViewModel: ObservableObject {
                 guard !Task.isCancelled else { break }
                 self.tick()
             }
+        }
+    }
+
+    /// Stops the 1-second sample one second after it started playing.
+    private func startSampleStopTimer() {
+        sampleTask?.cancel()
+        sampleTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(SamplePicker.sampleDuration))
+            guard !Task.isCancelled else { return }
+            guard let self, self.isSamplePlaying else { return }
+            self.isSamplePlaying = false
+            self.audioPlayer.stop()
         }
     }
 

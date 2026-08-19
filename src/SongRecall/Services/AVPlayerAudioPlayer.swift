@@ -46,6 +46,27 @@ final class AVPlayerAudioPlayer: AudioPlaying {
         }
     }
 
+    func loadDuration(of assetURL: URL) async throws -> TimeInterval {
+        let asset = AVURLAsset(url: assetURL)
+        let duration = try await asset.load(.duration)
+        guard duration.isNumeric, duration.seconds.isFinite, duration.seconds > 0 else {
+            throw PlaybackError.assetUnavailable
+        }
+        return duration.seconds
+    }
+
+    func playSample(assetURL: URL, at offset: TimeInterval) async throws {
+        let asset = AVURLAsset(url: assetURL)
+        let isPlayable = (try? await asset.load(.isPlayable)) ?? false
+        guard isPlayable else {
+            throw PlaybackError.assetUnavailable
+        }
+        player.replaceCurrentItem(with: AVPlayerItem(asset: asset))
+        let time = CMTime(seconds: max(0, offset), preferredTimescale: 600)
+        await player.seek(to: time, toleranceBefore: .zero, toleranceAfter: .zero)
+        player.play()
+    }
+
     func stop() {
         player.pause()
         player.replaceCurrentItem(with: nil)

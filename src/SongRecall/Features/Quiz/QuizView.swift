@@ -101,16 +101,62 @@ struct QuizView: View {
 
     // MARK: - Answer input
 
-    /// Easy mode renders the five options, hard mode the free-text field
-    /// with its autocomplete dropdown. Everything else stays identical.
+    /// Multiple-choice modes render the options, expert adds the Play
+    /// Sample button above them, hard renders the free-text field with
+    /// its autocomplete dropdown. Everything else stays identical.
     @ViewBuilder
     private var inputArea: some View {
-        if viewModel.isEasyMode {
-            optionList
+        if viewModel.isMultipleChoiceMode {
+            VStack(spacing: AppTheme.Spacing.md) {
+                if viewModel.isExpertMode {
+                    playSampleButton
+                }
+                optionList
+            }
         } else {
             answerField
         }
     }
+
+    /// Expert mode: replays the round's 1-second sample. Grayed out once
+    /// the three attempts are spent or while a sample is playing.
+    private var playSampleButton: some View {
+        Button(action: viewModel.playSample) {
+            HStack(spacing: AppTheme.Spacing.sm) {
+                Label("Play Sample", systemImage: "play.circle.fill")
+                    .font(.body.weight(.semibold))
+
+                Spacer(minLength: 0)
+
+                Text(attemptsText)
+                    .font(.footnote.weight(.semibold))
+                    .monospacedDigit()
+            }
+            .foregroundStyle(AppTheme.primaryText)
+            .frame(maxWidth: .infinity, minHeight: AppTheme.minimumTouchHeight)
+            .padding(.horizontal, AppTheme.Spacing.lg)
+            .background(AppTheme.surface, in: RoundedRectangle(cornerRadius: AppTheme.smallCornerRadius))
+            .overlay {
+                RoundedRectangle(cornerRadius: AppTheme.smallCornerRadius)
+                    .stroke(attemptsLeft > 0 ? AppTheme.accent : AppTheme.surfaceBorder, lineWidth: 1)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(!viewModel.canPlaySample)
+        .opacity(viewModel.canPlaySample ? 1 : 0.45)
+        .accessibilityIdentifier(AccessibilityID.quizPlaySample)
+        .accessibilityLabel("Play Sample, \(attemptsText)")
+    }
+
+    private var attemptsLeft: Int {
+        max(0, viewModel.sampleAttemptsRemaining)
+    }
+
+    private var attemptsText: String {
+        "\(attemptsLeft) \(attemptsLeft == 1 ? "play" : "plays") left"
+    }
+
 
     /// Easy mode: five options stacked below each other, one per round.
     private var optionList: some View {
@@ -374,9 +420,9 @@ struct QuizView: View {
                 .controlSize(.large)
                 .accessibilityIdentifier(AccessibilityID.quizSkip)
 
-                // Easy mode has no Submit: picking an option settles the
-                // round immediately.
-                if !viewModel.isEasyMode {
+                // Multiple-choice modes have no Submit: picking an
+                // option settles the round immediately.
+                if !viewModel.isMultipleChoiceMode {
                     Button(action: viewModel.submit) {
                         Text("Submit")
                             .font(.title3.weight(.semibold))

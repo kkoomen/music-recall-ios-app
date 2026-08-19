@@ -72,6 +72,7 @@ struct RootView: View {
             HomeView(
                 trackCount: tracks.count,
                 onStartEasy: { appModel.startQuiz(mode: .easy) },
+                onStartExpert: { appModel.startQuiz(mode: .expert) },
                 onStartHard: { appModel.startQuiz(mode: .hard) }
             )
         }

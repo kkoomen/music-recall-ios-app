@@ -11,7 +11,8 @@
 ## Modes
 
 - **Easy**: the player picks one of up to five options per round; the pick settles the round immediately (no Submit button).
-- **Hard**: the original free-text experience with the autocomplete dropdown.
+- **Hard** (labeled "Hard Mode" on the home screen; mode `expert` internally): identical to easy — up to five options per round and the same scoring — except the song is never played from the beginning. When a round starts, a 1-second sample of one random part of the song plays **automatically and free of charge**; a **Play Sample** button above the options replays the same part, at most three times per round. The remaining plays are shown on the button ("N plays left"), reset every round, and the button locks and grays out once the three attempts are spent. Playback failure settles the round as interrupted.
+- **Expert** (labeled "Expert Mode" on the home screen; mode `hard` internally): the original free-text experience with the autocomplete dropdown.
 - Easy-mode options are the correct track plus up to four decoys from the full catalog, shuffled via the injected random source. Decoys whose normalized title equals the correct track's title — or duplicates another decoy's title — are excluded, so two identically labeled options never appear. A catalog smaller than five tracks yields fewer options.
 - Easy-mode picks are matched by track identity (persistent media ID), never by title text, so a same-title decoy can never count as correct.
 - On a wrong pick the correct option is highlighted in green with a checkmark and the picked option in red with a cross; other options dim. A correct pick highlights only the correct option. A timeout never marks a pick as wrong.

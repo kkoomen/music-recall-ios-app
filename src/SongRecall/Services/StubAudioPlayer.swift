@@ -13,6 +13,15 @@ final class StubAudioPlayer: AudioPlaying {
         isPlaying = true
     }
 
+    func loadDuration(of assetURL: URL) async throws -> TimeInterval {
+        // Stub songs are treated as 30 seconds long.
+        30
+    }
+
+    func playSample(assetURL: URL, at offset: TimeInterval) async throws {
+        isPlaying = true
+    }
+
     func stop() {
         isPlaying = false
     }

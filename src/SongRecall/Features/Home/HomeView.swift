@@ -1,9 +1,10 @@
 import SwiftUI
 
-/// Home screen: local track count and the two quiz mode actions.
+/// Home screen: local track count and the three quiz mode actions.
 struct HomeView: View {
     let trackCount: Int
     let onStartEasy: () -> Void
+    let onStartExpert: () -> Void
     let onStartHard: () -> Void
 
     var body: some View {
@@ -35,8 +36,17 @@ struct HomeView: View {
                 .controlSize(.large)
                 .accessibilityIdentifier(AccessibilityID.homeStartEasy)
 
+                Button(action: onStartExpert) {
+                    modeLabel(title: "Hard Mode", caption: "1s sample · 3 plays")
+                        .foregroundStyle(AppTheme.primaryText)
+                }
+                .buttonStyle(.bordered)
+                .tint(AppTheme.accent)
+                .controlSize(.large)
+                .accessibilityIdentifier(AccessibilityID.homeStartExpert)
+
                 Button(action: onStartHard) {
-                    modeLabel(title: "Hard Mode", caption: "Type the answer")
+                    modeLabel(title: "Expert Mode", caption: "Type the answer")
                         .foregroundStyle(AppTheme.primaryText)
                 }
                 .buttonStyle(.bordered)
@@ -65,7 +75,7 @@ struct HomeView: View {
 }
 
 #Preview {
-    HomeView(trackCount: 42, onStartEasy: {}, onStartHard: {})
+    HomeView(trackCount: 42, onStartEasy: {}, onStartExpert: {}, onStartHard: {})
         .background(AppTheme.background)
         .preferredColorScheme(.dark)
 }

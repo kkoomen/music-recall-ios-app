@@ -5,10 +5,12 @@ import XCTest
 /// depending on a specific seeded shuffle outcome.
 private struct IdentityRandomSource: RandomSource {
     func shuffled<T>(_ elements: [T]) -> [T] { elements }
+    func nextDouble() -> Double { 0 }
 }
 
 private struct ReversingRandomSource: RandomSource {
     func shuffled<T>(_ elements: [T]) -> [T] { elements.reversed() }
+    func nextDouble() -> Double { 0.5 }
 }
 
 final class TrackSuggestionRankerTests: XCTestCase {

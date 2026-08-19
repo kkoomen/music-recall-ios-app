@@ -2,6 +2,22 @@
 
 Record decisions that affect architecture, product behavior, privacy, or roadmap order.
 
+## 2026-08-19: Home mode names swapped; sample auto-plays at round start
+
+Decision: The home screen now labels the 1-second-sample quiz "Hard Mode" and the typed-answer quiz "Expert Mode" (internal `QuizMode` cases unchanged). In the sample quiz, the first 1-second sample plays automatically when each round starts and does not consume a play — the player still has three manual plays.
+
+Reason: User request; the sample mode is the harder challenge and should open with an immediate listen.
+
+Consequence: HomeView labels swapped (`home.startExpert` starts the sample quiz, `home.startHard` the typed quiz — identifiers unchanged). `QuizViewModel` picks the round's random offset during the automatic first play and replays the same part on manual presses; `sampleAttemptsRemaining` still starts at 3. ROADMAP sections 6, 10, and 11, docs/quiz-rules.md, and docs/design-system.md updated.
+
+## 2026-08-19: Expert mode with limited 1-second sample playback
+
+Decision: Added a third home-screen mode, Expert, identical to easy mode except the song never auto-plays; a Play Sample button replays a 1-second sample of one random part per round, at most three times, resetting each round.
+
+Reason: User request for a harder listen-based variant of the multiple-choice quiz.
+
+Consequence: `QuizMode.expert` shares easy's mechanics and 3-second fast window; `AudioPlaying` gained `loadDuration(of:)` and `playSample(assetURL:at:)`; `RandomSource` gained `nextDouble()`; `SamplePicker` picks the per-round offset so every press replays the same part. Device validation of sample seek/playback stays blocked (no signed device build). ROADMAP section 11, docs/quiz-rules.md, and docs/design-system.md updated.
+
 ## 2026-08-19: Easy and hard quiz modes
 
 Decision: The home screen now offers two modes — Easy (five multiple-choice options per round) and Hard (the original typed-answer quiz). The 2x fast-answer window is mode-dependent: 3 seconds for easy (27 or more seconds remaining), 5 seconds for hard.

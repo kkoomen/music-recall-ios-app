@@ -31,8 +31,8 @@ The app is intentionally dark-only (arcade look) and forces `.preferredColorSche
 
 ## Screen priorities
 
-- Home: two obvious actions — Easy Mode (five choices) and Hard Mode (typed answer).
-- Quiz: timer, score, progress, answer input — either five option rows (easy) or the free-text field with autocomplete (hard).
+- Home: three obvious actions — Easy Mode (five choices), Hard Mode (1-second sample, three plays), and Expert Mode (typed answer).
+- Quiz: timer, score, progress, answer input — either five option rows (easy; hard adds a Play Sample button above them) or the free-text field with autocomplete (expert).
 - Results: score, accuracy, fastest answer, 2x multiplier count, replay.
 
 ## Interaction

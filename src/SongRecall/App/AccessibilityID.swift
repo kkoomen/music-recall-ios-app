@@ -4,6 +4,7 @@ import Foundation
 enum AccessibilityID {
     static let homeTrackCount = "home.trackCount"
     static let homeStartEasy = "home.startEasy"
+    static let homeStartExpert = "home.startExpert"
     static let homeStartHard = "home.startHard"
 
     static let permissionAllow = "permission.allow"
@@ -19,6 +20,7 @@ enum AccessibilityID {
     static let quizSkip = "quiz.skip"
     static let quizNext = "quiz.next"
     static let quizOption = "quiz.option"
+    static let quizPlaySample = "quiz.playSample"
     static let quizReveal = "quiz.reveal"
     static let quizFeedback = "quiz.feedback"
 

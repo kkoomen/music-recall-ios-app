@@ -132,6 +132,7 @@ final class ScoreCalculatorTests: XCTestCase {
 
     func testQuizConfigurationThresholdsFollowMode() {
         XCTAssertEqual(QuizConfiguration(mode: .easy).fastThreshold, 3)
+        XCTAssertEqual(QuizConfiguration(mode: .expert).fastThreshold, 3)
         XCTAssertEqual(QuizConfiguration(mode: .hard).fastThreshold, 5)
         XCTAssertEqual(QuizConfiguration().fastThreshold, 5)
     }

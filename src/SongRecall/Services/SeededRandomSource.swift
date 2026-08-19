@@ -21,4 +21,9 @@ struct SeededRandomSource: RandomSource, RandomNumberGenerator {
         var generator = self
         return elements.shuffled(using: &generator)
     }
+
+    func nextDouble() -> Double {
+        var generator = self
+        return Double.random(in: 0..<1, using: &generator)
+    }
 }

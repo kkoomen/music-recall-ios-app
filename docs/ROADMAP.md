@@ -126,6 +126,7 @@ src
 │   │   ├── QuizState.swift
 │   │   ├── RandomSource.swift
 │   │   ├── RoundOutcome.swift
+│   │   ├── SamplePicker.swift
 │   │   ├── ScoreCalculator.swift
 │   │   ├── Track.swift
 │   │   └── TrackSuggestionRanker.swift
@@ -182,6 +183,8 @@ src
 │   ├── OptionGeneratorTests.swift
 │   ├── QuizViewModelSuggestionTests.swift
 │   ├── QuizViewModelModeTests.swift
+│   ├── QuizViewModelExpertTests.swift
+│   ├── SamplePickerTests.swift
 │   ├── ScoreCalculatorTests.swift
 │   ├── SmokeTests.swift
 │   ├── StubSelectionOrderTests.swift
@@ -191,6 +194,7 @@ src
 │   ├── AccessibilityUITests.swift
 │   ├── AutocompleteUITests.swift
 │   ├── EasyModeUITests.swift
+│   ├── ExpertModeUITests.swift
 │   ├── LaunchTests.swift
 │   ├── PermissionFlowUITests.swift
 │   ├── QuizJourneyTests.swift
@@ -410,7 +414,7 @@ Reward fast correct recall with transparent scoring.
 
 - Use monotonic elapsed time from the injected `Clocking`, never wall clock.
 - Constants: `basePoints = 10`, `fastThreshold = 5` seconds, `wrongPenalty = 5`, `skipPenalty = 10`, default `roundDuration = 30`.
-- Correct answer: `points = (10 + remainingSeconds) × multiplier`, where `remainingSeconds = max(0, ceil(roundDuration − elapsed))` matches the displayed countdown, and `multiplier = 2` when the answer lands at or before 5 seconds elapsed (25 or more seconds remaining on the clock); otherwise `multiplier = 1`. Easy mode narrows the fast window to 3 seconds (27 or more seconds remaining) — see section 10.
+- Correct answer: `points = (10 + remainingSeconds) × multiplier`, where `remainingSeconds = max(0, ceil(roundDuration − elapsed))` matches the displayed countdown, and `multiplier = 2` when the answer lands at or before 5 seconds elapsed (25 or more seconds remaining on the clock); otherwise `multiplier = 1`. Easy and expert modes narrow the fast window to 3 seconds (27 or more seconds remaining) — see sections 10 and 11.
   - Immediate answer (elapsed 0): remaining 30 → 40 × 2 = **80 points**.
   - Answer at exactly 30 s: remaining 0, no multiplier → **10 points**.
   - Answer at 5.0 s: remaining 25 → 35 × 2 = 70 points; at 5.1 s → 35 points.
@@ -453,8 +457,8 @@ Navigation (`AppRoute { library, quiz, results(QuizResult) }`, `RootView` switch
 
 Home screen (`HomeView`):
 
-- App title "Song Recall" (rounded, heavy, 40 pt), `music.note.list` icon in `accent`, then "N songs ready" ("1 song ready" when N == 1), then two full-width mode buttons — **Easy Mode** (accent-filled, near-black text, caption "5 choices") and **Hard Mode** (bordered, caption "Type the answer") — and a footnote "N songs · 30s per round · min(N, 10) rounds".
-- Identifiers: `home.trackCount`, `home.startEasy`, `home.startHard`.
+- App title "Song Recall" (rounded, heavy, 40 pt), `music.note.list` icon in `accent`, then "N songs ready" ("1 song ready" when N == 1), then three full-width mode buttons — **Easy Mode** (accent-filled, near-black text, caption "5 choices"), **Hard Mode** (accent-bordered, caption "1s sample · 3 plays"), and **Expert Mode** (bordered, caption "Type the answer") — and a footnote "N songs · 30s per round · min(N, 10) rounds".
+- Identifiers: `home.trackCount`, `home.startEasy`, `home.startExpert`, `home.startHard`.
 
 Permission screen (`PermissionView`) — one screen, four states, exact copy:
 
@@ -495,9 +499,9 @@ Results screen (`ResultsView`):
 
 Stable accessibility identifiers (normative, centralized in `App/AccessibilityID.swift`):
 
-- Home: `home.trackCount`, `home.startEasy`, `home.startHard`.
+- Home: `home.trackCount`, `home.startEasy`, `home.startExpert`, `home.startHard`.
 - Permission: `permission.allow`, `permission.settings`, `permission.title`.
-- Quiz: `quiz.round`, `quiz.timer`, `quiz.score`, `quiz.answerField`, `quiz.suggestion`, `quiz.submit`, `quiz.skip`, `quiz.next`, `quiz.option`, `quiz.reveal`, `quiz.feedback`.
+- Quiz: `quiz.round`, `quiz.timer`, `quiz.score`, `quiz.answerField`, `quiz.suggestion`, `quiz.submit`, `quiz.skip`, `quiz.next`, `quiz.option`, `quiz.playSample`, `quiz.reveal`, `quiz.feedback`.
 - Results: `results.score`, `results.correct`, `results.accuracy`, `results.fastest`, `results.multipliers`, `results.replay`, `results.home`.
 
 Launch arguments (normative, UI-test contract):
@@ -574,8 +578,8 @@ Protect MVP behavior and verify system-only paths on real hardware.
 
 ### Specification
 
-- Unit suite (124 tests in `src/SongRecallTests/`) covers: mapper filtering (`TrackMapperTests`), normalization (`AnswerNormalizerTests`), matching (`AnswerMatcherTests`), session state machine (`QuizSessionTests`), option submission by track identity (`QuizSessionTests`), engine selection determinism (`QuizEngineTests`, `StubSelectionOrderTests`), scoring boundaries and penalties (`ScoreCalculatorTests`), mode thresholds and multiplier counts (`ScoreCalculatorTests`), library-state resolution (`LibraryStateResolverTests`), feedback strings (`FeedbackStringsTests`), autocomplete ranking and tie order (`TrackSuggestionRankerTests`), option generation (`OptionGeneratorTests`), view-model suggestion/return-key behavior (`QuizViewModelSuggestionTests`), easy-mode view-model behavior (`QuizViewModelModeTests`), fake-player event ordering (`FakeAudioPlayerTests`), and a launch smoke test (`SmokeTests`).
-- UI suite (11 tests in `src/SongRecallUITests/`) covers: permission states notDetermined/denied/restricted/empty (`PermissionFlowUITests`), the full quiz journey correct/wrong/skip (`QuizJourneyTests`), the easy-mode journey with correct/wrong highlights (`EasyModeUITests`), autocomplete commit (`AutocompleteUITests`), timeout with recovery via `-uitest-round-duration` (`QuizTimeoutUITests`), results/replay, launch (`LaunchTests`), and accessibility-XXXL usability (`AccessibilityUITests`).
+- Unit suite (138 tests in `src/SongRecallTests/`) covers: mapper filtering (`TrackMapperTests`), normalization (`AnswerNormalizerTests`), matching (`AnswerMatcherTests`), session state machine (`QuizSessionTests`), option submission by track identity (`QuizSessionTests`), engine selection determinism (`QuizEngineTests`, `StubSelectionOrderTests`), scoring boundaries and penalties (`ScoreCalculatorTests`), mode thresholds and multiplier counts (`ScoreCalculatorTests`), library-state resolution (`LibraryStateResolverTests`), feedback strings (`FeedbackStringsTests`), autocomplete ranking and tie order (`TrackSuggestionRankerTests`), option generation (`OptionGeneratorTests`), sample offset picking (`SamplePickerTests`), view-model suggestion/return-key behavior (`QuizViewModelSuggestionTests`), easy-mode view-model behavior (`QuizViewModelModeTests`), expert-mode view-model behavior incl. attempt limits (`QuizViewModelExpertTests`), fake-player event ordering (`FakeAudioPlayerTests`), and a launch smoke test (`SmokeTests`).
+- UI suite (12 tests in `src/SongRecallUITests/`) covers: permission states notDetermined/denied/restricted/empty (`PermissionFlowUITests`), the full quiz journey correct/wrong/skip (`QuizJourneyTests`), the easy-mode journey with correct/wrong highlights (`EasyModeUITests`), the expert-mode journey with limited sample plays (`ExpertModeUITests`), autocomplete commit (`AutocompleteUITests`), timeout with recovery via `-uitest-round-duration` (`QuizTimeoutUITests`), results/replay, launch (`LaunchTests`), and accessibility-XXXL usability (`AccessibilityUITests`).
 - Fakes: `StubMediaLibrary` (mode-driven, section 6), `StubAudioPlayer`/`FakeAudioPlayer`, `FakeClock`, `SeededRandomSource` (SplitMix64).
 - Use accessibility identifiers rather than brittle text selectors.
 - Run the simulator build and test commands after every feature.
@@ -641,14 +645,14 @@ First working MVP runs on an iPhone with local Music-library songs and satisfies
 
 ### Goal
 
-Let players choose between a multiple-choice quiz and the original typed-answer quiz from the home screen, with identical styling and scoring except for a tighter fast-answer window in easy mode.
+Let players choose between a multiple-choice quiz, a sample-only expert quiz, and the original typed-answer quiz from the home screen, with identical styling and scoring except for a tighter fast-answer window in the multiple-choice modes.
 
 ### Specification
 
 Mode selection:
 
-- `QuizMode { easy, hard }` (pure domain enum). `QuizConfiguration` gains `mode` (default `.hard`); `QuizConfiguration.fastThreshold` is computed from the mode: **3 seconds** for easy (27 or more seconds remaining on the clock), **5 seconds** for hard — unchanged from the MVP.
-- `AppModel.startQuiz(mode:)` builds the engine with the chosen mode; `replay()` restarts the same mode. Home shows two full-width buttons: **Easy Mode** (accent-filled, caption "5 choices") and **Hard Mode** (bordered, caption "Type the answer"). Identifiers `home.startEasy`, `home.startHard` replace `home.startQuiz`.
+- `QuizMode { easy, expert, hard }` (pure domain enum). `QuizConfiguration` gains `mode` (default `.hard`); `QuizConfiguration.fastThreshold` is computed from the mode: **3 seconds** for easy and expert (27 or more seconds remaining on the clock), **5 seconds** for hard — unchanged from the MVP.
+- `AppModel.startQuiz(mode:)` builds the engine with the chosen mode; `replay()` restarts the same mode. Home shows three full-width buttons: **Easy Mode** (accent-filled, caption "5 choices"), **Hard Mode** (accent-bordered, caption "1s sample · 3 plays"), and **Expert Mode** (bordered, caption "Type the answer"). Identifiers `home.startEasy`, `home.startExpert`, `home.startHard` replace `home.startQuiz`.
 
 Easy mode:
 
@@ -686,6 +690,38 @@ Tests:
 ### Acceptance gate
 
 A player can start either mode from home, replay keeps the mode, easy rounds settle on one pick with clear correct/wrong highlights, and the hard-mode experience is exactly the MVP one.
+
+## [x] 11. Expert mode (Completed)
+
+### Goal
+
+Add a third home-screen mode (labeled **Hard Mode**) that plays like easy mode but reveals only a 1-second sample of a random part of each song — played automatically at round start, replayable three more times via the button.
+
+### Specification
+
+- `QuizMode.expert`: identical multiple-choice mechanics, styling, scoring, and 3-second fast window as easy mode. The song is never played from the beginning; `QuizConfiguration.fastThreshold` stays 3 seconds for expert.
+- Sample playback: `AudioPlaying` gains `loadDuration(of:)` and `playSample(assetURL:at:)`; `AVPlayerAudioPlayer` seeks with zero tolerance; `RandomSource` gains `nextDouble()`. `SamplePicker.offset(songDuration:random:)` picks a random start so the 1-second sample (`SamplePicker.sampleDuration`) fits inside the song; short or unmeasurable songs start at 0. Deterministic per seed.
+- Per round: the offset is picked once (during the automatic first play) via the injected random source and replayed on every press — the same part is heard each time. The first 1-second sample plays **automatically when the round starts and does not consume a play**; the player still has all `maxSampleAttempts` = 3 manual plays. `QuizViewModel` exposes `sampleAttemptsRemaining` (starts at 3), `isSamplePlaying`, `canPlaySample`, and `playSample()`; every sample stops itself 1 second after playback starts; a playback failure settles the round as interrupted.
+- UI: above the five options, a **Play Sample** button (`quiz.playSample`) shows "N plays left" ("1 play left" singular), is disabled while a sample plays, and grays out (0.45 opacity, plain border) once the manual attempts run out. Attempts reset every round. Home labels the sample mode **Hard Mode** (accent-bordered, caption "1s sample · 3 plays", identifier `home.startExpert`) and the typed-answer mode **Expert Mode** (bordered, caption "Type the answer", identifier `home.startHard`).
+- No other behavior changes: timer, skip, reveal, feedback banners, penalties, results, and replay are identical to easy mode.
+
+### Agents
+
+- Builder owns domain, view model, and view changes.
+- Testing agent covers offset picking, attempt limits, and the expert journey.
+- Audio-runtime agent validates sample seek/playback on a real device (blocked here; recorded in docs/decision-log.md).
+
+### Checklist
+
+- [x] Expert mode offers multiple choice with a 1-second sample.
+- [x] The first sample plays automatically at round start without consuming a play.
+- [x] The sample replays the same random part; max three manual plays per round.
+- [x] Attempts reset each round; the button grays out when exhausted.
+- [x] Unit and UI suites pass.
+
+### Acceptance gate
+
+An expert-mode round opens with a free automatic 1-second sample, can replay the same part up to three more times via the button, never plays the song from the beginning, and otherwise behaves exactly like easy mode.
 
 ## Future work after MVP
 

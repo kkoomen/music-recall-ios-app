@@ -54,6 +54,13 @@ final class QuizJourneyTests: XCTestCase {
         XCTAssertTrue(app.staticTexts[AccessibilityID.resultsScore].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts[AccessibilityID.resultsCorrect].exists)
         XCTAssertTrue(app.staticTexts[AccessibilityID.resultsAccuracy].exists)
+        // Round 1 was the only fast answer; the multiplier stat counts it.
+        XCTAssertTrue(app.staticTexts[AccessibilityID.resultsMultipliers].exists)
+        XCTAssertEqual(
+            app.staticTexts[AccessibilityID.resultsMultipliers].label,
+            "2x Multipliers: 1",
+            "Got: \(app.staticTexts[AccessibilityID.resultsMultipliers].label)"
+        )
 
         // Replay starts a fresh quiz.
         app.buttons[AccessibilityID.resultsReplay].tap()
@@ -128,5 +135,6 @@ private enum AccessibilityID {
     static let resultsScore = "results.score"
     static let resultsCorrect = "results.correct"
     static let resultsAccuracy = "results.accuracy"
+    static let resultsMultipliers = "results.multipliers"
     static let resultsReplay = "results.replay"
 }

@@ -26,6 +26,7 @@ enum AccessibilityID {
     static let resultsCorrect = "results.correct"
     static let resultsAccuracy = "results.accuracy"
     static let resultsFastest = "results.fastest"
+    static let resultsMultipliers = "results.multipliers"
     static let resultsReplay = "results.replay"
     static let resultsHome = "results.home"
 }

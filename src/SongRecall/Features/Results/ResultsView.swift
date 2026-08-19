@@ -71,6 +71,13 @@ struct ResultsView: View {
                 value: fastestString,
                 id: AccessibilityID.resultsFastest
             )
+            statCell(
+                title: "2x Multipliers",
+                value: "\(result.fastCount)",
+                id: AccessibilityID.resultsMultipliers,
+                caption: "2x",
+                icon: "bolt.fill"
+            )
         }
     }
 
@@ -79,15 +86,28 @@ struct ResultsView: View {
         return String(format: "%.1fs", fastest)
     }
 
-    private func statCell(title: String, value: String, id: String) -> some View {
+    private func statCell(
+        title: String,
+        value: String,
+        id: String,
+        caption: String? = nil,
+        icon: String? = nil
+    ) -> some View {
         VStack(spacing: 6) {
             Text(value)
                 .font(.title2.weight(.bold))
                 .monospacedDigit()
                 .foregroundStyle(AppTheme.primaryText)
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(AppTheme.secondaryText)
+
+            HStack(spacing: 4) {
+                if let icon {
+                    Image(systemName: icon)
+                        .font(.caption)
+                }
+                Text(caption ?? title)
+                    .font(.caption)
+            }
+            .foregroundStyle(AppTheme.secondaryText)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 14)

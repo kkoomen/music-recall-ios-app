@@ -490,15 +490,15 @@ Answer-field autocomplete (normative, full contract):
 
 Results screen (`ResultsView`):
 
-- "Quiz Complete" (32 pt), `trophy.fill` in accent, total score (72 pt, rounded heavy, monospaced), stat grid with Correct / Accuracy / Fastest (fastest formatted "%.1fs", em dash when none), **Play Again** (accent) and **Back to Library** (secondary) buttons.
-- Identifiers: `results.score`, `results.correct`, `results.accuracy`, `results.fastest`, `results.replay`, `results.home`.
+- "Quiz Complete" (32 pt), `trophy.fill` in accent, total score (72 pt, rounded heavy, monospaced), stat grid with Correct / Accuracy / Fastest (fastest formatted "%.1fs", em dash when none) / 2x Multipliers (count of correct answers that landed in the fast window, shown as a `bolt.fill` icon with a "2x" caption in `secondaryText` below the count), **Play Again** (accent) and **Back to Library** (secondary) buttons.
+- Identifiers: `results.score`, `results.correct`, `results.accuracy`, `results.fastest`, `results.multipliers`, `results.replay`, `results.home`.
 
 Stable accessibility identifiers (normative, centralized in `App/AccessibilityID.swift`):
 
 - Home: `home.trackCount`, `home.startEasy`, `home.startHard`.
 - Permission: `permission.allow`, `permission.settings`, `permission.title`.
 - Quiz: `quiz.round`, `quiz.timer`, `quiz.score`, `quiz.answerField`, `quiz.suggestion`, `quiz.submit`, `quiz.skip`, `quiz.next`, `quiz.option`, `quiz.reveal`, `quiz.feedback`.
-- Results: `results.score`, `results.correct`, `results.accuracy`, `results.fastest`, `results.replay`, `results.home`.
+- Results: `results.score`, `results.correct`, `results.accuracy`, `results.fastest`, `results.multipliers`, `results.replay`, `results.home`.
 
 Launch arguments (normative, UI-test contract):
 
@@ -574,7 +574,7 @@ Protect MVP behavior and verify system-only paths on real hardware.
 
 ### Specification
 
-- Unit suite (121 tests in `src/SongRecallTests/`) covers: mapper filtering (`TrackMapperTests`), normalization (`AnswerNormalizerTests`), matching (`AnswerMatcherTests`), session state machine (`QuizSessionTests`), option submission by track identity (`QuizSessionTests`), engine selection determinism (`QuizEngineTests`, `StubSelectionOrderTests`), scoring boundaries and penalties (`ScoreCalculatorTests`), mode thresholds (`ScoreCalculatorTests`), library-state resolution (`LibraryStateResolverTests`), feedback strings (`FeedbackStringsTests`), autocomplete ranking and tie order (`TrackSuggestionRankerTests`), option generation (`OptionGeneratorTests`), view-model suggestion/return-key behavior (`QuizViewModelSuggestionTests`), easy-mode view-model behavior (`QuizViewModelModeTests`), fake-player event ordering (`FakeAudioPlayerTests`), and a launch smoke test (`SmokeTests`).
+- Unit suite (124 tests in `src/SongRecallTests/`) covers: mapper filtering (`TrackMapperTests`), normalization (`AnswerNormalizerTests`), matching (`AnswerMatcherTests`), session state machine (`QuizSessionTests`), option submission by track identity (`QuizSessionTests`), engine selection determinism (`QuizEngineTests`, `StubSelectionOrderTests`), scoring boundaries and penalties (`ScoreCalculatorTests`), mode thresholds and multiplier counts (`ScoreCalculatorTests`), library-state resolution (`LibraryStateResolverTests`), feedback strings (`FeedbackStringsTests`), autocomplete ranking and tie order (`TrackSuggestionRankerTests`), option generation (`OptionGeneratorTests`), view-model suggestion/return-key behavior (`QuizViewModelSuggestionTests`), easy-mode view-model behavior (`QuizViewModelModeTests`), fake-player event ordering (`FakeAudioPlayerTests`), and a launch smoke test (`SmokeTests`).
 - UI suite (11 tests in `src/SongRecallUITests/`) covers: permission states notDetermined/denied/restricted/empty (`PermissionFlowUITests`), the full quiz journey correct/wrong/skip (`QuizJourneyTests`), the easy-mode journey with correct/wrong highlights (`EasyModeUITests`), autocomplete commit (`AutocompleteUITests`), timeout with recovery via `-uitest-round-duration` (`QuizTimeoutUITests`), results/replay, launch (`LaunchTests`), and accessibility-XXXL usability (`AccessibilityUITests`).
 - Fakes: `StubMediaLibrary` (mode-driven, section 6), `StubAudioPlayer`/`FakeAudioPlayer`, `FakeClock`, `SeededRandomSource` (SplitMix64).
 - Use accessibility identifiers rather than brittle text selectors.

@@ -31,6 +31,20 @@ struct QuizResult: Equatable, Sendable {
         rounds.compactMap(\.elapsedForScoring).min()
     }
 
+    /// Number of correct answers that landed within the fast window and
+    /// earned the 2x multiplier, using this result's mode threshold.
+    var fastCount: Int {
+        rounds.reduce(0) { count, round in
+            guard case .correct(let elapsed) = round.outcome else { return count }
+            let breakdown = ScoreCalculator.breakdown(
+                forCorrectAnswerAt: elapsed,
+                roundDuration: roundDuration,
+                fastThreshold: fastThreshold
+            )
+            return count + (breakdown.isFast ? 1 : 0)
+        }
+    }
+
     /// Sum of per-round scores, clamped so the total never goes below 0.
     var totalScore: Int {
         let sum = rounds.compactMap(\.outcome).reduce(0) {

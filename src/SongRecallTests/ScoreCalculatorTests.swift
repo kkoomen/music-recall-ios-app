@@ -156,6 +156,70 @@ final class ScoreCalculatorTests: XCTestCase {
         XCTAssertEqual(result.fastThreshold, 3)
     }
 
+    // MARK: - Fast multiplier count on results
+
+    func testFastCountCountsOnlyFastCorrectAnswers() {
+        let url = URL(string: "ipod-library://item/item.mp3?id=1")!
+        func track(_ id: UInt64) -> Track {
+            Track(id: id, title: "T\(id)", artist: "A", album: "B", assetURL: url)
+        }
+        var session = QuizSession(
+            configuration: QuizConfiguration(roundCount: 3, roundDuration: 30),
+            rounds: [track(1), track(2), track(3)].map { QuizRound(track: $0) }
+        )
+        _ = session.begin(now: 0)
+        _ = session.submitAnswer("T1", now: 0)   // fast: 2x
+        _ = session.advance(now: 1)
+        _ = session.submitAnswer("T2", now: 16)  // slow: no 2x
+        _ = session.advance(now: 20)
+        _ = session.submitAnswer("nope", now: 25) // wrong
+        let state = session.advance(now: 26)
+
+        guard case .finished(let result) = state else {
+            return XCTFail("Expected finished")
+        }
+        XCTAssertEqual(result.correctCount, 2)
+        XCTAssertEqual(result.fastCount, 1)
+    }
+
+    func testFastCountZeroWhenNothingIsFast() {
+        let url = URL(string: "ipod-library://item/item.mp3?id=1")!
+        var session = QuizSession(
+            configuration: QuizConfiguration(roundCount: 1, roundDuration: 30),
+            rounds: [QuizRound(track: Track(
+                id: 1, title: "One", artist: "Artist", album: "Album", assetURL: url
+            ))]
+        )
+        _ = session.begin(now: 0)
+        _ = session.submitAnswer("One", now: 20) // 20s: no 2x
+        let state = session.advance(now: 21)
+        guard case .finished(let result) = state else {
+            return XCTFail("Expected finished")
+        }
+        XCTAssertEqual(result.fastCount, 0)
+    }
+
+    func testFastCountRespectsEasyModeThreshold() {
+        // Easy: correct at exactly 3s is fast, at 4s it is not.
+        let url = URL(string: "ipod-library://item/item.mp3?id=1")!
+        func track(_ id: UInt64) -> Track {
+            Track(id: id, title: "T\(id)", artist: "A", album: "B", assetURL: url)
+        }
+        var session = QuizSession(
+            configuration: QuizConfiguration(roundCount: 2, roundDuration: 30, mode: .easy),
+            rounds: [track(1), track(2)].map { QuizRound(track: $0) }
+        )
+        _ = session.begin(now: 0)
+        _ = session.submitOption(trackID: 1, now: 3)  // fast in easy mode
+        _ = session.advance(now: 4)
+        _ = session.submitOption(trackID: 2, now: 8)  // 4s elapsed: not fast
+        let state = session.advance(now: 9)
+        guard case .finished(let result) = state else {
+            return XCTFail("Expected finished")
+        }
+        XCTAssertEqual(result.fastCount, 1)
+    }
+
     // MARK: - Freeze and timer races
 
     func testScoreFreezesAtFirstTerminalEvent() {

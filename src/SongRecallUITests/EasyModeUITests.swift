@@ -74,6 +74,11 @@ final class EasyModeUITests: XCTestCase {
         XCTAssertTrue(correct.exists)
         XCTAssertEqual(correct.label, "Correct: 1", "Got: \(correct.label)")
 
+        // Exactly one fast pick (round 1) earned the 2x multiplier.
+        let multipliers = app.staticTexts["results.multipliers"]
+        XCTAssertTrue(multipliers.exists)
+        XCTAssertEqual(multipliers.label, "2x Multipliers: 1", "Got: \(multipliers.label)")
+
         // Replay returns to easy mode with a fresh round.
         app.buttons["results.replay"].tap()
         assertRound(number: 1, of: 3)

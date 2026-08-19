@@ -2,13 +2,15 @@ import Foundation
 
 /// Scoring: 10 base points plus one point per full remaining second
 /// (matching the displayed countdown), doubled when the answer lands
-/// within the first 5 seconds (25 or more seconds remaining on the
-/// clock). Wrong answers deduct 5, skips deduct 10; the cumulative
-/// score never goes below 0. Timeout and playback interruption score 0.
+/// within the fast window (25 or more seconds remaining on the clock
+/// for hard mode, 27 or more for easy mode). Wrong answers deduct 5,
+/// skips deduct 10; the cumulative score never goes below 0. Timeout
+/// and playback interruption score 0.
 enum ScoreCalculator {
     /// Base points for any correct answer.
     static let basePoints = 10
-    /// Answers at or before this many seconds of round start earn 2x.
+    /// Hard-mode answers at or before this many seconds of round start
+    /// earn 2x. Easy mode passes a 3-second threshold instead.
     static let fastThreshold: TimeInterval = 5
     /// Points deducted for a wrong answer.
     static let wrongPenalty = 5
@@ -25,7 +27,8 @@ enum ScoreCalculator {
 
     static func breakdown(
         forCorrectAnswerAt elapsed: TimeInterval,
-        roundDuration: TimeInterval = 30
+        roundDuration: TimeInterval = 30,
+        fastThreshold: TimeInterval = ScoreCalculator.fastThreshold
     ) -> Breakdown {
         let clampedElapsed = max(0, elapsed)
         let remaining = max(0, Int(ceil(roundDuration - clampedElapsed)))
@@ -36,20 +39,30 @@ enum ScoreCalculator {
 
     static func score(
         forCorrectAnswerAt elapsed: TimeInterval,
-        roundDuration: TimeInterval = 30
+        roundDuration: TimeInterval = 30,
+        fastThreshold: TimeInterval = ScoreCalculator.fastThreshold
     ) -> Int {
-        breakdown(forCorrectAnswerAt: elapsed, roundDuration: roundDuration).points
+        breakdown(
+            forCorrectAnswerAt: elapsed,
+            roundDuration: roundDuration,
+            fastThreshold: fastThreshold
+        ).points
     }
 
     /// Per-round score contribution. May be negative for wrong answers
     /// and skips; the session score clamps the running total at 0.
     static func score(
         for outcome: RoundOutcome,
-        roundDuration: TimeInterval = 30
+        roundDuration: TimeInterval = 30,
+        fastThreshold: TimeInterval = ScoreCalculator.fastThreshold
     ) -> Int {
         switch outcome {
         case .correct(let elapsed):
-            return score(forCorrectAnswerAt: elapsed, roundDuration: roundDuration)
+            return score(
+                forCorrectAnswerAt: elapsed,
+                roundDuration: roundDuration,
+                fastThreshold: fastThreshold
+            )
         case .wrong:
             return -wrongPenalty
         case .skipped:

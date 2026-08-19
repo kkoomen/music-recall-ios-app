@@ -42,6 +42,11 @@ final class QuizEngine {
     }
 
     @discardableResult
+    func submitOption(trackID: UInt64) -> RoundOutcome? {
+        session.submitOption(trackID: trackID, now: clock.now)
+    }
+
+    @discardableResult
     func skip() -> RoundOutcome? {
         session.skip()
     }

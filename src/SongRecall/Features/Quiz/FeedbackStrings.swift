@@ -6,7 +6,7 @@ import Foundation
 enum FeedbackStrings {
     static func correct(points: Int, isFast: Bool) -> String {
         isFast
-            ? "You're fast! 2x multiplier, plus \(points) points"
+            ? "You're fast! 2x, plus \(points) points"
             : "Correct! +\(points) points"
     }
 

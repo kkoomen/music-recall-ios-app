@@ -14,7 +14,7 @@ final class FeedbackStringsTests: XCTestCase {
     func testCorrectFastShowsMultiplierAndActualPoints() {
         XCTAssertEqual(
             FeedbackStrings.correct(points: 72, isFast: true),
-            "You're fast! 2x multiplier, plus 72 points"
+            "You're fast! 2x, plus 72 points"
         )
     }
 

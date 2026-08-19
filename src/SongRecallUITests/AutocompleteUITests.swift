@@ -15,7 +15,7 @@ final class AutocompleteUITests: XCTestCase {
         app.launchArguments = ["-uitest-library", "ready"]
         app.launch()
 
-        let startButton = app.buttons["home.startQuiz"]
+        let startButton = app.buttons["home.startHard"]
         XCTAssertTrue(startButton.waitForExistence(timeout: 5))
         startButton.tap()
 
@@ -36,7 +36,7 @@ final class AutocompleteUITests: XCTestCase {
             .matching(identifier: "quiz.feedback")
             .firstMatch
         XCTAssertTrue(feedback.waitForExistence(timeout: 5))
-        XCTAssertTrue(feedback.label.contains("2x multiplier"), "Got: \(feedback.label)")
+        XCTAssertTrue(feedback.label.contains("2x"), "Got: \(feedback.label)")
     }
 
     func testNoSuggestionsForNonsenseQuery() throws {
@@ -44,7 +44,7 @@ final class AutocompleteUITests: XCTestCase {
         app.launchArguments = ["-uitest-library", "ready"]
         app.launch()
 
-        let startButton = app.buttons["home.startQuiz"]
+        let startButton = app.buttons["home.startHard"]
         XCTAssertTrue(startButton.waitForExistence(timeout: 5))
         startButton.tap()
 

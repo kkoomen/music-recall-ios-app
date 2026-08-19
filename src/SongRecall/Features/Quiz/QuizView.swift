@@ -14,7 +14,7 @@ struct QuizView: View {
     var body: some View {
         VStack(spacing: AppTheme.Spacing.lg) {
             header
-            answerField
+            inputArea
             feedbackBanner
             Spacer(minLength: AppTheme.Spacing.md)
             answerReveal
@@ -24,7 +24,7 @@ struct QuizView: View {
         .padding(AppTheme.Spacing.xl)
         .onAppear {
             viewModel.start()
-            // Auto-focus the answer field when the quiz starts.
+            // Auto-focus the answer field when the quiz starts (hard mode).
             answerFieldFocused = true
         }
         .onChange(of: viewModel.feedback) { _, newFeedback in
@@ -99,7 +99,63 @@ struct QuizView: View {
         return viewModel.remainingSeconds <= 5 ? AppTheme.danger : AppTheme.primaryText
     }
 
-    // MARK: - Answer input with attached autocomplete overlay
+    // MARK: - Answer input
+
+    /// Easy mode renders the five options, hard mode the free-text field
+    /// with its autocomplete dropdown. Everything else stays identical.
+    @ViewBuilder
+    private var inputArea: some View {
+        if viewModel.isEasyMode {
+            optionList
+        } else {
+            answerField
+        }
+    }
+
+    /// Easy mode: five options stacked below each other, one per round.
+    private var optionList: some View {
+        VStack(spacing: AppTheme.Spacing.sm) {
+            ForEach(viewModel.options, id: \.id) { track in
+                Button {
+                    viewModel.selectOption(track)
+                } label: {
+                    OptionRow(
+                        track: track,
+                        isHighlightedCorrect: !viewModel.roundIsActive && track.id == viewModel.correctOptionID,
+                        isHighlightedWrong: isSelectedWrong(track),
+                        isEnabled: viewModel.roundIsActive
+                    )
+                }
+                .buttonStyle(.plain)
+                .disabled(!viewModel.roundIsActive)
+                .accessibilityIdentifier(AccessibilityID.quizOption)
+                .accessibilityLabel("\(track.title), \(track.artist)")
+                .accessibilityValue(optionAccessibilityValue(for: track))
+            }
+        }
+    }
+
+    /// VoiceOver value naming the option's settled state on the button
+    /// itself (not the row content, whose children would repeat it). The
+    /// feedback banner carries the exact score copy.
+    private func optionAccessibilityValue(for track: Track) -> String {
+        if !viewModel.roundIsActive && track.id == viewModel.correctOptionID {
+            return "Correct answer"
+        }
+        if isSelectedWrong(track) {
+            return "Your answer"
+        }
+        return ""
+    }
+
+    /// Only the player's pick is marked wrong, and only when the round
+    /// actually settled as wrong (a timeout never accuses a pick).
+    private func isSelectedWrong(_ track: Track) -> Bool {
+        if case .wrong = viewModel.feedback {
+            return track.id == viewModel.selectedOptionID
+        }
+        return false
+    }
 
     private var answerField: some View {
         TextField("Song title or artist — title", text: $viewModel.guess)
@@ -206,7 +262,8 @@ struct QuizView: View {
     }
 
     /// Celebration for a correct answer within the fast window: a bold
-    /// "You're fast!" compliment with a highlighted 2x multiplier badge.
+    /// "You're fast!" compliment with the points and a 2x badge on the
+    /// same row.
     private func fastCorrectBanner(points: Int) -> some View {
         VStack(spacing: AppTheme.Spacing.sm) {
             HStack(spacing: 6) {
@@ -216,17 +273,19 @@ struct QuizView: View {
             .font(.title2.weight(.heavy))
             .foregroundStyle(AppTheme.accent)
 
-            Text("2x multiplier")
-                .font(.headline.weight(.heavy))
-                .foregroundStyle(AppTheme.accentText)
-                .padding(.horizontal, AppTheme.Spacing.lg)
-                .padding(.vertical, AppTheme.Spacing.xs)
-                .background(AppTheme.accent, in: Capsule())
-                .accessibilityHidden(true)
+            HStack(spacing: AppTheme.Spacing.sm) {
+                Text("+\(points) points")
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(AppTheme.success)
 
-            Text("+\(points) points")
-                .font(.title3.weight(.bold))
-                .foregroundStyle(AppTheme.success)
+                Text("2x")
+                    .font(.headline.weight(.heavy))
+                    .foregroundStyle(AppTheme.accentText)
+                    .padding(.horizontal, AppTheme.Spacing.md)
+                    .padding(.vertical, AppTheme.Spacing.xs)
+                    .background(AppTheme.accent, in: Capsule())
+                    .accessibilityHidden(true)
+            }
         }
         .padding(AppTheme.Spacing.lg)
         .frame(maxWidth: .infinity)
@@ -315,17 +374,21 @@ struct QuizView: View {
                 .controlSize(.large)
                 .accessibilityIdentifier(AccessibilityID.quizSkip)
 
-                Button(action: viewModel.submit) {
-                    Text("Submit")
-                        .font(.title3.weight(.semibold))
-                        .frame(maxWidth: .infinity, minHeight: AppTheme.minimumTouchHeight)
+                // Easy mode has no Submit: picking an option settles the
+                // round immediately.
+                if !viewModel.isEasyMode {
+                    Button(action: viewModel.submit) {
+                        Text("Submit")
+                            .font(.title3.weight(.semibold))
+                            .frame(maxWidth: .infinity, minHeight: AppTheme.minimumTouchHeight)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(AppTheme.accent)
+                    .foregroundStyle(AppTheme.accentText)
+                    .controlSize(.large)
+                    .disabled(!viewModel.canSubmit)
+                    .accessibilityIdentifier(AccessibilityID.quizSubmit)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(AppTheme.accent)
-                .foregroundStyle(AppTheme.accentText)
-                .controlSize(.large)
-                .disabled(!viewModel.canSubmit)
-                .accessibilityIdentifier(AccessibilityID.quizSubmit)
             } else {
                 Button(action: viewModel.advance) {
                     Text("Next")

@@ -89,6 +89,73 @@ final class ScoreCalculatorTests: XCTestCase {
         XCTAssertTrue(breakdown.isFast)
     }
 
+    // MARK: - Easy mode: 2x within the first 3 seconds
+
+    func testEasyThresholdAnswerAtThreeSecondsIsFast() {
+        // 27 seconds remaining on the clock -> doubled.
+        let breakdown = ScoreCalculator.breakdown(
+            forCorrectAnswerAt: 3,
+            roundDuration: 30,
+            fastThreshold: 3
+        )
+        XCTAssertEqual(breakdown.points, (10 + 27) * 2)
+        XCTAssertTrue(breakdown.isFast)
+    }
+
+    func testEasyThresholdJustOverThreeSecondsLosesMultiplier() {
+        let breakdown = ScoreCalculator.breakdown(
+            forCorrectAnswerAt: 3.01,
+            roundDuration: 30,
+            fastThreshold: 3
+        )
+        XCTAssertEqual(breakdown.points, 10 + 27)
+        XCTAssertFalse(breakdown.isFast)
+    }
+
+    func testEasyThresholdDoesNotAffectHardModeDefaults() {
+        // The default fast threshold stays 5 seconds.
+        XCTAssertEqual(ScoreCalculator.score(forCorrectAnswerAt: 4), 72)
+        XCTAssertTrue(ScoreCalculator.breakdown(forCorrectAnswerAt: 4).isFast)
+    }
+
+    func testScoreForOutcomeUsesFastThreshold() {
+        // 4 seconds: inside the hard-mode window, outside the easy one.
+        XCTAssertEqual(
+            ScoreCalculator.score(for: .correct(elapsed: 4), roundDuration: 30, fastThreshold: 3),
+            36
+        )
+        XCTAssertEqual(
+            ScoreCalculator.score(for: .correct(elapsed: 4), roundDuration: 30, fastThreshold: 5),
+            72
+        )
+    }
+
+    func testQuizConfigurationThresholdsFollowMode() {
+        XCTAssertEqual(QuizConfiguration(mode: .easy).fastThreshold, 3)
+        XCTAssertEqual(QuizConfiguration(mode: .hard).fastThreshold, 5)
+        XCTAssertEqual(QuizConfiguration().fastThreshold, 5)
+    }
+
+    func testEasySessionTotalUsesThreeSecondThreshold() {
+        // Easy mode: correct at 4s -> 26 remaining, no multiplier -> 36.
+        // The same answer in hard mode would score 72.
+        let url = URL(string: "ipod-library://item/item.mp3?id=1")!
+        var session = QuizSession(
+            configuration: QuizConfiguration(roundCount: 1, roundDuration: 30, mode: .easy),
+            rounds: [QuizRound(track: Track(
+                id: 1, title: "One", artist: "Artist", album: "Album", assetURL: url
+            ))]
+        )
+        _ = session.begin(now: 0)
+        _ = session.submitOption(trackID: 1, now: 4)
+        let state = session.advance(now: 5)
+        guard case .finished(let result) = state else {
+            return XCTFail("Expected finished")
+        }
+        XCTAssertEqual(result.totalScore, 36)
+        XCTAssertEqual(result.fastThreshold, 3)
+    }
+
     // MARK: - Freeze and timer races
 
     func testScoreFreezesAtFirstTerminalEvent() {

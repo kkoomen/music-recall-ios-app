@@ -71,7 +71,8 @@ struct RootView: View {
         case .ready(let tracks):
             HomeView(
                 trackCount: tracks.count,
-                onStartQuiz: { appModel.startQuiz() }
+                onStartEasy: { appModel.startQuiz(mode: .easy) },
+                onStartHard: { appModel.startQuiz(mode: .hard) }
             )
         }
     }

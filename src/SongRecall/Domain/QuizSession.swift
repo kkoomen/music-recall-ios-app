@@ -52,6 +52,31 @@ struct QuizSession: Equatable, Sendable {
         return outcome
     }
 
+    /// Easy mode: accepts the selected option for the active round,
+    /// matched by track identity rather than title so a decoy that
+    /// shares the correct track's title can never count as correct.
+    /// Same timeout boundary as `submitAnswer`.
+    @discardableResult
+    mutating func submitOption(trackID: UInt64, now: TimeInterval) -> RoundOutcome? {
+        guard case .playing(let index) = state,
+              rounds.indices.contains(index),
+              rounds[index].isActive,
+              let startElapsed = rounds[index].startElapsed
+        else { return nil }
+
+        let elapsed = max(0, now - startElapsed)
+        let outcome: RoundOutcome
+        if elapsed > configuration.roundDuration {
+            outcome = .timedOut
+        } else if rounds[index].track.id == trackID {
+            outcome = .correct(elapsed: elapsed)
+        } else {
+            outcome = .wrong
+        }
+        rounds[index].end(with: outcome)
+        return outcome
+    }
+
     /// Ends the active round as skipped. Returns nil when no round is active.
     @discardableResult
     mutating func skip() -> RoundOutcome? {
@@ -101,7 +126,11 @@ struct QuizSession: Equatable, Sendable {
             rounds[index + 1].start(at: now)
             state = .playing(roundIndex: index + 1)
         } else {
-            state = .finished(QuizResult(rounds: rounds, roundDuration: configuration.roundDuration))
+            state = .finished(QuizResult(
+                rounds: rounds,
+                roundDuration: configuration.roundDuration,
+                fastThreshold: configuration.fastThreshold
+            ))
         }
         return state
     }

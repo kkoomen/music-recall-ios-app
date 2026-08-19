@@ -12,7 +12,7 @@ final class QuizTimeoutUITests: XCTestCase {
         app.launchArguments = ["-uitest-library", "ready", "-uitest-round-duration", "2"]
         app.launch()
 
-        let startButton = app.buttons["home.startQuiz"]
+        let startButton = app.buttons["home.startHard"]
         XCTAssertTrue(startButton.waitForExistence(timeout: 5))
         startButton.tap()
 

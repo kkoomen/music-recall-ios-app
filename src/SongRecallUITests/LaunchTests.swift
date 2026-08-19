@@ -11,6 +11,7 @@ final class LaunchTests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["-uitest-library", "ready"]
         app.launch()
-        XCTAssertTrue(app.buttons["home.startQuiz"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["home.startHard"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["home.startEasy"].exists)
     }
 }

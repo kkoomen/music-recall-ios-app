@@ -4,6 +4,19 @@ import Foundation
 struct QuizResult: Equatable, Sendable {
     let rounds: [QuizRound]
     let roundDuration: TimeInterval
+    /// Fast-answer threshold used for the 2x multiplier (3s easy, 5s
+    /// hard), carried so totals match the mode that produced them.
+    let fastThreshold: TimeInterval
+
+    init(
+        rounds: [QuizRound],
+        roundDuration: TimeInterval,
+        fastThreshold: TimeInterval = ScoreCalculator.fastThreshold
+    ) {
+        self.rounds = rounds
+        self.roundDuration = roundDuration
+        self.fastThreshold = fastThreshold
+    }
 
     var correctCount: Int {
         rounds.filter(\.isCorrect).count
@@ -21,7 +34,11 @@ struct QuizResult: Equatable, Sendable {
     /// Sum of per-round scores, clamped so the total never goes below 0.
     var totalScore: Int {
         let sum = rounds.compactMap(\.outcome).reduce(0) {
-            $0 + ScoreCalculator.score(for: $1, roundDuration: roundDuration)
+            $0 + ScoreCalculator.score(
+                for: $1,
+                roundDuration: roundDuration,
+                fastThreshold: fastThreshold
+            )
         }
         return max(0, sum)
     }

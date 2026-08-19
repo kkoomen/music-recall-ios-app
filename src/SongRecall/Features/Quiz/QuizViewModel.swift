@@ -19,6 +19,11 @@ final class QuizViewModel: ObservableObject {
     @Published private(set) var remainingSeconds: Int
     @Published private(set) var feedback: Feedback = .none
     @Published private(set) var suggestions: [TrackSuggestion] = []
+    /// Easy mode: the five multiple-choice options for the active round.
+    @Published private(set) var options: [Track] = []
+    /// Easy mode: the option the player picked, kept for highlighting
+    /// after the round settles.
+    @Published private(set) var selectedOptionID: UInt64?
     @Published var guess = ""
 
     /// Debounce between the last keystroke and suggestion refresh.
@@ -27,6 +32,7 @@ final class QuizViewModel: ObservableObject {
     private let engine: QuizEngine
     private let audioPlayer: AudioPlaying
     private let random: RandomSource
+    private let catalog: [Track]
     private let suggestionIndex: [TrackSuggestionRanker.IndexEntry]
     private var timerTask: Task<Void, Never>?
     private var suggestionTask: Task<Void, Never>?
@@ -34,8 +40,12 @@ final class QuizViewModel: ObservableObject {
     private let onFinish: (QuizResult) -> Void
 
     var currentTrack: Track? { engine.currentRound?.track }
+    /// Easy mode: the track identity that counts as correct this round.
+    var correctOptionID: UInt64? { engine.currentRound?.track.id }
+    var isEasyMode: Bool { engine.configuration.mode == .easy }
     var canSubmit: Bool {
         feedback == .none
+            && !isEasyMode
             && !guess.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     var roundIsActive: Bool { feedback == .none }
@@ -50,6 +60,7 @@ final class QuizViewModel: ObservableObject {
         self.engine = engine
         self.audioPlayer = audioPlayer
         self.random = random
+        self.catalog = catalog
         self.suggestionIndex = TrackSuggestionRanker.makeIndex(from: catalog)
         self.totalRounds = engine.session.rounds.count
         self.remainingSeconds = Int(engine.configuration.roundDuration)
@@ -67,16 +78,25 @@ final class QuizViewModel: ObservableObject {
     }
 
     func submit() {
-        guard feedback == .none, let outcome = engine.submitAnswer(guess) else { return }
+        guard !isEasyMode, feedback == .none, let outcome = engine.submitAnswer(guess) else { return }
         settle(outcome)
     }
 
     /// Fills the answer field with the suggestion's title and submits it
     /// as the player's answer.
     func select(_ suggestion: TrackSuggestion) {
-        guard feedback == .none else { return }
+        guard !isEasyMode, feedback == .none else { return }
         guess = suggestion.track.title
         submit()
+    }
+
+    /// Easy mode: picks one of the five options. The round settles
+    /// immediately; identity (not title text) decides the outcome.
+    func selectOption(_ track: Track) {
+        guard isEasyMode, feedback == .none else { return }
+        selectedOptionID = track.id
+        guard let outcome = engine.submitOption(trackID: track.id) else { return }
+        settle(outcome)
     }
 
     /// Debounced search entry point, called whenever the guess changes.
@@ -143,6 +163,12 @@ final class QuizViewModel: ObservableObject {
         }
         feedback = .none
         guess = ""
+        selectedOptionID = nil
+        if isEasyMode {
+            options = OptionGenerator.options(for: round.track, from: catalog, random: random)
+        } else {
+            options = []
+        }
         remainingSeconds = Int(engine.configuration.roundDuration)
         prepareAndPlay(assetURL: round.track.assetURL)
         startTimer()
@@ -157,7 +183,8 @@ final class QuizViewModel: ObservableObject {
         case .correct(let elapsed):
             let breakdown = ScoreCalculator.breakdown(
                 forCorrectAnswerAt: elapsed,
-                roundDuration: engine.configuration.roundDuration
+                roundDuration: engine.configuration.roundDuration,
+                fastThreshold: engine.configuration.fastThreshold
             )
             score += breakdown.points
             feedback = .correct(points: breakdown.points, isFast: breakdown.isFast)

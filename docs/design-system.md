@@ -31,8 +31,8 @@ The app is intentionally dark-only (arcade look) and forces `.preferredColorSche
 
 ## Screen priorities
 
-- Home: one obvious Start Quiz action.
-- Quiz: artwork, timer, score, progress, answer, submit.
+- Home: two obvious actions — Easy Mode (five choices) and Hard Mode (typed answer).
+- Quiz: timer, score, progress, answer input — either five option rows (easy) or the free-text field with autocomplete (hard).
 - Results: score, accuracy, fastest answer, replay.
 
 ## Interaction
@@ -48,5 +48,5 @@ The app is intentionally dark-only (arcade look) and forces `.preferredColorSche
 - Dynamic Type supported without clipping: the quiz header uses `ViewThatFits` to fall back to a vertical layout, and an accessibility-XXXL UI test guards it.
 - VoiceOver: every control has a meaningful label; artwork is labeled "Song artwork" and never exposes the song title (the answer); timer/score/round use explicit labels; results stats combine title+value.
 - Touch targets: interactive elements enforce a 48pt minimum height.
-- Result states never rely on color alone: feedback banners pair icon + text.
+- Result states never rely on color alone: feedback banners pair icon + text, and easy-mode option highlights pair color with check/cross icons plus "Correct answer"/"Your answer" accessibility values.
 - Stable accessibility identifiers for every interactive element live in `App/AccessibilityID.swift` and are used by UI tests.

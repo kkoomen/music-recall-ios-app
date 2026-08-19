@@ -11,6 +11,8 @@ final class AppModel: ObservableObject {
     private let clock: Clocking
     private let random: RandomSource
     private let roundDurationOverride: TimeInterval?
+    /// Mode of the current (and replayed) session.
+    private var activeMode: QuizMode = .hard
 
     private(set) var quizViewModel: QuizViewModel?
 
@@ -97,13 +99,18 @@ final class AppModel: ObservableObject {
         }
     }
 
-    func startQuiz() {
+    func startQuiz(mode: QuizMode) {
         guard case .ready(let tracks) = libraryState, !tracks.isEmpty else { return }
+        activeMode = mode
         let configuration: QuizConfiguration
         if let roundDurationOverride {
-            configuration = QuizConfiguration(roundCount: 10, roundDuration: roundDurationOverride)
+            configuration = QuizConfiguration(
+                roundCount: 10,
+                roundDuration: roundDurationOverride,
+                mode: mode
+            )
         } else {
-            configuration = .default
+            configuration = QuizConfiguration(mode: mode)
         }
         let engine = QuizEngine(catalog: tracks, configuration: configuration, random: random, clock: clock)
         let viewModel = QuizViewModel(
@@ -123,7 +130,7 @@ final class AppModel: ObservableObject {
     }
 
     func replay() {
-        startQuiz()
+        startQuiz(mode: activeMode)
     }
 
     func backToLibrary() {

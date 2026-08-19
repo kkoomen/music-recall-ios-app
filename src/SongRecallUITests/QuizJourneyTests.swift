@@ -19,7 +19,7 @@ final class QuizJourneyTests: XCTestCase {
         app.launch()
 
         // Home: track count and start button.
-        let startButton = app.buttons[AccessibilityID.homeStartQuiz]
+        let startButton = app.buttons[AccessibilityID.homeStartHard]
         XCTAssertTrue(startButton.waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts[AccessibilityID.homeTrackCount].exists)
 
@@ -29,7 +29,7 @@ final class QuizJourneyTests: XCTestCase {
         assertRound(number: 1, of: 3)
         answer("Gamma Song")
         // Answered within 5 seconds: the fast celebration shows.
-        assertFeedback(contains: "2x multiplier")
+        assertFeedback(contains: "2x")
         // Every round end reveals the song, including correct answers.
         XCTAssertTrue(revealElement.waitForExistence(timeout: 5))
         XCTAssertEqual(revealElement.label, "The song was Gamma Song, Artist Three")
@@ -112,7 +112,7 @@ final class QuizJourneyTests: XCTestCase {
 }
 
 private enum AccessibilityID {
-    static let homeStartQuiz = "home.startQuiz"
+    static let homeStartHard = "home.startHard"
     static let homeTrackCount = "home.trackCount"
     static let permissionTitle = "permission.title"
     static let permissionSettings = "permission.settings"

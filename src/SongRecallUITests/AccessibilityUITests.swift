@@ -10,7 +10,7 @@ final class AccessibilityUITests: XCTestCase {
         app.launchEnvironment["UIPreferredContentSizeCategoryName"] = "UICTContentSizeCategoryAccessibilityXXXL"
         app.launch()
 
-        let startButton = app.buttons["home.startQuiz"]
+        let startButton = app.buttons["home.startHard"]
         XCTAssertTrue(startButton.waitForExistence(timeout: 5))
         startButton.tap()
 

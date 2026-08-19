@@ -3,7 +3,8 @@ import Foundation
 /// Stable accessibility identifiers for UI tests and VoiceOver.
 enum AccessibilityID {
     static let homeTrackCount = "home.trackCount"
-    static let homeStartQuiz = "home.startQuiz"
+    static let homeStartEasy = "home.startEasy"
+    static let homeStartHard = "home.startHard"
 
     static let permissionAllow = "permission.allow"
     static let permissionSettings = "permission.settings"
@@ -17,6 +18,7 @@ enum AccessibilityID {
     static let quizSubmit = "quiz.submit"
     static let quizSkip = "quiz.skip"
     static let quizNext = "quiz.next"
+    static let quizOption = "quiz.option"
     static let quizReveal = "quiz.reveal"
     static let quizFeedback = "quiz.feedback"
 

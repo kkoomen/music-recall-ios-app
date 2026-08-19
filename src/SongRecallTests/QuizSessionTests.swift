@@ -43,6 +43,48 @@ final class QuizSessionTests: XCTestCase {
         XCTAssertEqual(session.currentRound?.isActive, false)
     }
 
+    // MARK: - Option submission (easy mode)
+
+    func testSubmitOptionCorrectByTrackIdentity() {
+        var session = makeSession(tracks: [makeTrack(id: 1, title: "One")])
+        _ = session.begin(now: 0)
+        XCTAssertEqual(session.submitOption(trackID: 1, now: 2.5), .correct(elapsed: 2.5))
+        XCTAssertEqual(session.currentRound?.isCorrect, true)
+    }
+
+    func testSubmitOptionWrongByTrackIdentity() {
+        var session = makeSession(tracks: [makeTrack(id: 1, title: "One")])
+        _ = session.begin(now: 0)
+        XCTAssertEqual(session.submitOption(trackID: 2, now: 2), .wrong)
+        XCTAssertEqual(session.currentRound?.isActive, false)
+    }
+
+    func testSubmitOptionMatchesIdentityNotTitle() {
+        // A decoy sharing the correct track's title must never count.
+        var session = makeSession(tracks: [makeTrack(id: 2, title: "One")])
+        _ = session.begin(now: 0)
+        XCTAssertEqual(session.submitOption(trackID: 1, now: 1), .wrong)
+    }
+
+    func testSubmitOptionTimesOutAfterDuration() {
+        var onTime = makeSession(tracks: [makeTrack(id: 1, title: "One")], duration: 30)
+        _ = onTime.begin(now: 0)
+        XCTAssertEqual(onTime.submitOption(trackID: 1, now: 30), .correct(elapsed: 30))
+
+        var late = makeSession(tracks: [makeTrack(id: 1, title: "One")], duration: 30)
+        _ = late.begin(now: 0)
+        XCTAssertEqual(late.submitOption(trackID: 1, now: 30.001), .timedOut)
+    }
+
+    func testTerminalRoundRejectsOptions() {
+        var session = makeSession(tracks: [makeTrack(id: 1, title: "One")])
+        _ = session.begin(now: 0)
+        _ = session.submitOption(trackID: 1, now: 1)
+        XCTAssertNil(session.submitOption(trackID: 1, now: 2))
+        XCTAssertNil(session.submitOption(trackID: 2, now: 2))
+        XCTAssertEqual(session.currentRound?.outcome, .correct(elapsed: 1))
+    }
+
     func testAnswerAtDurationBoundaryIsAccepted() {
         var session = makeSession(tracks: [makeTrack(id: 1, title: "One")], duration: 30)
         _ = session.begin(now: 0)

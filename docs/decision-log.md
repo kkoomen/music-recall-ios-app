@@ -2,6 +2,14 @@
 
 Record decisions that affect architecture, product behavior, privacy, or roadmap order.
 
+## 2026-08-19: Easy and hard quiz modes
+
+Decision: The home screen now offers two modes — Easy (five multiple-choice options per round) and Hard (the original typed-answer quiz). The 2x fast-answer window is mode-dependent: 3 seconds for easy (27 or more seconds remaining), 5 seconds for hard.
+
+Reason: User request; multiple-choice was previously listed as future work.
+
+Consequence: `QuizMode` and `QuizConfiguration.mode` drive a computed `fastThreshold`; `QuizSession.submitOption` matches picks by track identity (never title text, so a same-title decoy can never count as correct); `OptionGenerator` builds up to five deduplicated, shuffled options; `ScoreCalculator` takes an explicit `fastThreshold` (defaults keep hard-mode behavior); `QuizResult` carries the threshold so totals match the mode. Wrong easy picks highlight both the correct option (success) and the picked option (danger); replay keeps the mode. Home identifiers `home.startEasy`/`home.startHard` replace `home.startQuiz`; `quiz.option` added. docs/quiz-rules.md, docs/design-system.md, and ROADMAP section 10 reflect the new behavior.
+
 ## 2026-08-18: Media source
 
 Decision: Use Apple Music library through MediaPlayer for MVP.
